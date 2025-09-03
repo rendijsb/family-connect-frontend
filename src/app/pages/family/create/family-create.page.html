@@ -1,0 +1,233 @@
+<ion-header [translucent]="true" class="create-header">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-button class="back-button" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title class="header-title">Create Family</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button
+        class="save-button"
+        [disabled]="!createForm.valid || isLoading()"
+        (click)="onCreateFamily()">
+        @if (!isLoading()) {
+          <span>Create</span>
+        } @else {
+          <ion-icon name="reload-outline" class="spinning"></ion-icon>
+        }
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="create-content">
+  <div class="create-container">
+
+    <!-- Family Icon -->
+    <div class="family-icon-section">
+      <div class="family-icon">
+        <ion-icon name="home-outline"></ion-icon>
+      </div>
+      <h2 class="section-title">Create Your Family</h2>
+      <p class="section-subtitle">Set up your family space to start connecting with your loved ones</p>
+    </div>
+
+    <!-- Create Form -->
+    <form [formGroup]="createForm" (ngSubmit)="onCreateFamily()" class="create-form">
+
+      <!-- Family Name -->
+      <div class="form-section">
+        <h3 class="form-section-title">Family Information</h3>
+
+        <div class="input-group">
+          <ion-item class="custom-item" lines="none">
+            <ion-icon name="home-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              type="text"
+              placeholder="Family Name"
+              formControlName="name"
+              class="custom-input"
+              maxlength="50"
+              counter="true"
+              [appValidationError]="isSubmitted()">
+            </ion-input>
+          </ion-item>
+        </div>
+
+        <div class="input-group">
+          <ion-item class="custom-item" lines="none">
+            <ion-icon name="document-text-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-textarea
+              placeholder="Family Description (Optional)"
+              formControlName="description"
+              class="custom-textarea"
+              rows="3"
+              maxlength="500"
+              counter="true"
+              [appValidationError]="isSubmitted()">
+            </ion-textarea>
+          </ion-item>
+        </div>
+      </div>
+
+      <!-- Privacy Settings -->
+      <div class="form-section">
+        <h3 class="form-section-title">Privacy Settings</h3>
+
+        <ion-radio-group formControlName="privacy" class="privacy-options">
+          <div class="privacy-option"
+               [class.selected]="createForm.get('privacy')?.value === 'private'"
+               (click)="selectPrivacy('private')">
+            <div class="option-header">
+              <ion-icon name="lock-closed-outline" class="option-icon private"></ion-icon>
+              <div class="option-info">
+                <h4 class="option-title">Private</h4>
+                <p class="option-description">Only invited members can join</p>
+              </div>
+              <ion-radio
+                value="private"
+                class="option-radio">
+              </ion-radio>
+            </div>
+          </div>
+
+          <div class="privacy-option"
+               [class.selected]="createForm.get('privacy')?.value === 'invite_only'"
+               (click)="selectPrivacy('invite_only')">
+            <div class="option-header">
+              <ion-icon name="key-outline" class="option-icon invite"></ion-icon>
+              <div class="option-info">
+                <h4 class="option-title">Invite Only</h4>
+                <p class="option-description">Members need invitation or join code</p>
+              </div>
+              <ion-radio
+                value="invite_only"
+                class="option-radio">
+              </ion-radio>
+            </div>
+          </div>
+
+          <div class="privacy-option"
+               [class.selected]="createForm.get('privacy')?.value === 'public'"
+               (click)="selectPrivacy('public')">
+            <div class="option-header">
+              <ion-icon name="globe-outline" class="option-icon public"></ion-icon>
+              <div class="option-info">
+                <h4 class="option-title">Public</h4>
+                <p class="option-description">Anyone can discover and join</p>
+              </div>
+              <ion-radio
+                value="public"
+                class="option-radio">
+              </ion-radio>
+            </div>
+          </div>
+        </ion-radio-group>
+      </div>
+
+      <!-- Advanced Settings -->
+      <div class="form-section">
+        <h3 class="form-section-title">Settings</h3>
+
+        <div class="input-group">
+          <ion-item class="custom-item" lines="none">
+            <ion-icon name="people-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-select
+              placeholder="Maximum Members"
+              formControlName="maxMembers"
+              interface="popover"
+              class="custom-select"
+              [appValidationError]="isSubmitted()">
+              <ion-select-option value="5">5 Members</ion-select-option>
+              <ion-select-option value="10">10 Members</ion-select-option>
+              <ion-select-option value="15">15 Members</ion-select-option>
+              <ion-select-option value="20">20 Members</ion-select-option>
+              <ion-select-option value="25">25 Members</ion-select-option>
+              <ion-select-option value="50">50 Members</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </div>
+
+        <div class="input-group">
+          <ion-item class="custom-item" lines="none">
+            <ion-icon name="time-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-select
+              placeholder="Timezone"
+              formControlName="timezone"
+              interface="popover"
+              class="custom-select"
+              [appValidationError]="isSubmitted()">
+              @for (tz of timezones; track tz.value) {
+                <ion-select-option [value]="tz.value">
+                  {{ tz.label }}
+                </ion-select-option>
+              }
+            </ion-select>
+          </ion-item>
+        </div>
+
+        <div class="input-group">
+          <ion-item class="custom-item" lines="none">
+            <ion-icon name="language-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-select
+              placeholder="Language"
+              formControlName="language"
+              interface="popover"
+              class="custom-select"
+              [appValidationError]="isSubmitted()">
+              <ion-select-option value="en">English</ion-select-option>
+              <ion-select-option value="es">Spanish</ion-select-option>
+              <ion-select-option value="fr">French</ion-select-option>
+              <ion-select-option value="de">German</ion-select-option>
+              <ion-select-option value="it">Italian</ion-select-option>
+              <ion-select-option value="pt">Portuguese</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <ion-button
+          expand="block"
+          type="submit"
+          class="create-button"
+          [disabled]="!createForm.valid || isLoading()">
+          @if (!isLoading()) {
+            <ion-icon name="home-outline" slot="start"></ion-icon>
+            <span>Create Family</span>
+          } @else {
+            <ion-icon name="reload-outline" slot="start" class="spinning"></ion-icon>
+            <span>Creating...</span>
+          }
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="clear"
+          class="cancel-button"
+          (click)="goBack()"
+          [disabled]="isLoading()">
+          Cancel
+        </ion-button>
+      </div>
+
+    </form>
+
+    <div class="privacy-info">
+      <div class="info-card">
+        <ion-icon name="information-circle-outline" class="info-icon"></ion-icon>
+        <div class="info-content">
+          <h4 class="info-title">Privacy & Security</h4>
+          <p class="info-text">
+            As the family owner, you'll have full control over member permissions,
+            privacy settings, and can generate invite codes for easy sharing.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

@@ -1,0 +1,141 @@
+<ion-header class="modal-header">
+  <ion-toolbar class="header-toolbar">
+    <ion-title class="header-title">Invite Family Member</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button
+        fill="clear"
+        class="close-button"
+        (click)="dismiss()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-content">
+  <div class="invite-container">
+
+    <!-- Header Section -->
+    <div class="invite-header">
+      <div class="invite-icon">
+        <ion-icon name="person-add-outline"></ion-icon>
+      </div>
+      <h2 class="invite-title">Invite to {{ familyName }}</h2>
+      <p class="invite-subtitle">Send an invitation to join your family</p>
+    </div>
+
+    <!-- Invite Form -->
+    <form [formGroup]="inviteForm" (ngSubmit)="onSendInvite()" class="invite-form">
+
+      <!-- Email Input -->
+      <div class="form-section">
+        <h3 class="section-title">Member Details</h3>
+
+        <div class="input-group">
+          <ion-item class="custom-item" lines="none">
+            <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              type="email"
+              placeholder="Enter email address"
+              formControlName="email"
+              class="custom-input"
+              [appValidationError]="isSubmitted()">
+            </ion-input>
+          </ion-item>
+        </div>
+      </div>
+
+      <!-- Role Selection -->
+      <div class="form-section">
+        <h3 class="section-title">Family Role</h3>
+
+        <ion-list class="role-list">
+          @for (option of roleOptions; track option.value) {
+            <ion-item
+              class="role-option"
+              [class.selected]="inviteForm.get('role')?.value === option.value"
+              (click)="inviteForm.patchValue({ role: option.value })"
+              button>
+
+              <div class="role-content">
+                <div class="role-header">
+                  <ion-icon name="shield-checkmark-outline" class="role-icon"></ion-icon>
+                  <div class="role-info">
+                    <h4 class="role-title">{{ option.label }}</h4>
+                    <p class="role-description">{{ option.description }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <ion-icon
+                [name]="inviteForm.get('role')?.value === option.value ? 'radio-button-on-outline' : 'radio-button-off-outline'"
+                slot="end"
+                class="selection-icon">
+              </ion-icon>
+            </ion-item>
+          }
+        </ion-list>
+      </div>
+
+      <!-- Personal Message -->
+      <div class="form-section">
+        <h3 class="section-title">Personal Message</h3>
+
+        <div class="input-group">
+          <ion-item class="custom-item textarea-item" lines="none">
+            <ion-icon name="chatbubble-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-textarea
+              placeholder="Add a personal message (optional)"
+              formControlName="message"
+              class="custom-textarea"
+              rows="3"
+              maxlength="500"
+              [appValidationError]="isSubmitted()">
+            </ion-textarea>
+          </ion-item>
+
+          <div class="character-count">
+            {{ inviteForm.get('message')?.value?.length || 0 }}/500
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <ion-button
+          expand="block"
+          type="submit"
+          class="send-button"
+          [disabled]="!inviteForm.valid">
+          <ion-icon name="send-outline" slot="start"></ion-icon>
+          Send Invitation
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="clear"
+          class="cancel-button"
+          (click)="dismiss()">
+          Cancel
+        </ion-button>
+      </div>
+
+    </form>
+
+    <!-- Info Section -->
+    <div class="info-section">
+      <div class="info-card">
+        <ion-icon name="information-circle-outline" class="info-icon"></ion-icon>
+        <div class="info-content">
+          <h4 class="info-title">Invitation Details</h4>
+          <p class="info-text">
+            The invitation will be sent via email and will expire in 7 days.
+            The recipient can accept or decline the invitation.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

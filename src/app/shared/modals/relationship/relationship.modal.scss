@@ -1,0 +1,629 @@
+.modal-content {
+  --background: linear-gradient(135deg, #1a1a1a 0%, #2d1b1b 50%, #1a1a1a 100%);
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+.relationship-container {
+  padding: 20px;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  min-height: 100%;
+}
+
+// Modal Header
+.modal-header {
+  --background: rgba(38, 38, 38, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header-toolbar {
+  --background: transparent;
+  --color: white;
+  --min-height: 56px;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+}
+
+.close-button {
+  --color: #a1a1aa;
+  width: 40px;
+  height: 40px;
+
+  &:hover {
+    --color: white;
+  }
+}
+
+// Relationship Header
+.relationship-header {
+  text-align: center;
+  padding: 24px 0 32px 0;
+}
+
+.relationship-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
+
+  ion-icon {
+    font-size: 36px;
+    color: white;
+  }
+}
+
+.relationship-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+.relationship-subtitle {
+  font-size: 14px;
+  color: #a1a1aa;
+  margin: 0;
+  line-height: 1.4;
+}
+
+// Form Styles
+.relationship-form {
+  flex: 1;
+}
+
+.form-section {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 16px 0;
+  padding-left: 4px;
+}
+
+// Relationship Selection
+.relationship-list {
+  background: transparent;
+  padding: 0;
+}
+
+.relationship-option {
+  --background: rgba(55, 55, 55, 0.6);
+  --border-radius: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: auto;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 16px;
+
+  &:hover {
+    --background: rgba(65, 65, 65, 0.8);
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+
+  &.selected {
+    --background: rgba(139, 92, 246, 0.1);
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.relationship-content {
+  width: 100%;
+  padding: 0;
+}
+
+.relationship-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+}
+
+.relationship-option-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(139, 92, 246, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 20px;
+    color: #8b5cf6;
+  }
+}
+
+.relationship-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.relationship-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.relationship-description {
+  font-size: 13px;
+  color: #a1a1aa;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.selection-icon {
+  color: #8b5cf6;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+// Guardian Section
+.guardian-section {
+  padding: 0;
+}
+
+.guardian-item {
+  --background: rgba(34, 197, 94, 0.1);
+  --border-radius: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: auto;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  align-items: flex-start;
+  transition: all 0.3s ease;
+
+  &:hover {
+    --background: rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.3);
+  }
+}
+
+.guardian-content {
+  width: 100%;
+  padding: 0;
+  margin-right: 12px;
+}
+
+.guardian-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+}
+
+.guardian-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(34, 197, 94, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 18px;
+    color: #22c55e;
+  }
+}
+
+.guardian-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.guardian-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.guardian-description {
+  font-size: 13px;
+  color: #a1a1aa;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.guardian-checkbox {
+  --background: rgba(55, 55, 55, 0.8);
+  --background-checked: #22c55e;
+  --border-color: rgba(255, 255, 255, 0.2);
+  --border-color-checked: #22c55e;
+  --checkmark-color: white;
+  flex-shrink: 0;
+  margin: 2px 0 0 0;
+}
+
+// Form Actions
+.form-actions {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.save-button {
+  --background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  --background-hover: linear-gradient(135deg, #7c3aed, #6d28d9);
+  --color: white;
+  --border-radius: 12px;
+  height: 56px;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+  transition: all 0.3s ease;
+
+  &:hover:not(.button-disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(139, 92, 246, 0.5);
+  }
+
+  &.button-disabled {
+    --background: rgba(107, 114, 128, 0.5);
+    --color: rgba(255, 255, 255, 0.5);
+    box-shadow: none;
+  }
+}
+
+.cancel-button {
+  --color: #a1a1aa;
+  --border-radius: 12px;
+  height: 48px;
+  font-size: 15px;
+  font-weight: 500;
+
+  &:hover {
+    --color: white;
+  }
+}
+
+// Info Section
+.info-section {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-card {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+}
+
+.info-icon {
+  font-size: 20px;
+  color: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.info-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.info-text {
+  font-size: 13px;
+  color: #a1a1aa;
+  margin: 0;
+  line-height: 1.4;
+}
+
+// Responsive Design
+@media (max-width: 430px) {
+  .relationship-container {
+    padding: 16px;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  }
+
+  .relationship-header {
+    padding: 20px 0 24px 0;
+  }
+
+  .relationship-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+
+    ion-icon {
+      font-size: 30px;
+    }
+  }
+
+  .relationship-title {
+    font-size: 20px;
+  }
+
+  .relationship-subtitle {
+    font-size: 13px;
+  }
+
+  .form-section {
+    margin-bottom: 24px;
+  }
+
+  .section-title {
+    font-size: 15px;
+  }
+
+  .relationship-option {
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+
+  .guardian-item {
+    padding: 14px;
+  }
+
+  .relationship-label {
+    font-size: 15px;
+  }
+
+  .relationship-description,
+  .guardian-description {
+    font-size: 12px;
+  }
+
+  .save-button {
+    height: 52px;
+    font-size: 15px;
+  }
+
+  .cancel-button {
+    height: 44px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 375px) {
+  .relationship-container {
+    padding: 12px;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  }
+
+  .relationship-header {
+    padding: 16px 0 20px 0;
+  }
+
+  .relationship-icon {
+    width: 55px;
+    height: 55px;
+
+    ion-icon {
+      font-size: 28px;
+    }
+  }
+
+  .relationship-title {
+    font-size: 18px;
+  }
+
+  .form-section {
+    margin-bottom: 20px;
+  }
+
+  .relationship-option {
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+
+  .guardian-item {
+    padding: 12px;
+  }
+
+  .relationship-option-icon {
+    width: 36px;
+    height: 36px;
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+
+  .guardian-icon {
+    width: 32px;
+    height: 32px;
+
+    ion-icon {
+      font-size: 16px;
+    }
+  }
+
+  .form-actions {
+    margin-top: 32px;
+    gap: 10px;
+  }
+}
+
+// iPad and larger screens
+@media (min-width: 768px) {
+  .relationship-container {
+    padding: 32px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .relationship-header {
+    padding: 32px 0 40px 0;
+  }
+
+  .relationship-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 24px;
+
+    ion-icon {
+      font-size: 45px;
+    }
+  }
+
+  .relationship-title {
+    font-size: 28px;
+  }
+
+  .relationship-subtitle {
+    font-size: 16px;
+  }
+
+  .form-section {
+    margin-bottom: 40px;
+  }
+
+  .section-title {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+
+  .relationship-option {
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .guardian-item {
+    padding: 20px;
+  }
+
+  .relationship-option-icon {
+    width: 48px;
+    height: 48px;
+
+    ion-icon {
+      font-size: 24px;
+    }
+  }
+
+  .guardian-icon {
+    width: 44px;
+    height: 44px;
+
+    ion-icon {
+      font-size: 22px;
+    }
+  }
+
+  .save-button {
+    height: 60px;
+    font-size: 18px;
+  }
+
+  .cancel-button {
+    height: 52px;
+    font-size: 16px;
+  }
+
+  .info-card {
+    padding: 20px;
+    gap: 16px;
+  }
+}
+
+// Landscape mode adjustments
+@media (orientation: landscape) and (max-height: 500px) {
+  .relationship-header {
+    padding: 12px 0 16px 0;
+  }
+
+  .relationship-icon {
+    width: 50px;
+    height: 50px;
+
+    ion-icon {
+      font-size: 25px;
+    }
+  }
+
+  .relationship-title {
+    font-size: 18px;
+  }
+
+  .form-section {
+    margin-bottom: 20px;
+  }
+
+  .form-actions {
+    margin-top: 24px;
+  }
+
+  .info-section {
+    margin-top: 20px;
+    padding-top: 16px;
+  }
+}
+
+// Dark mode enhancements
+@media (prefers-color-scheme: dark) {
+  .modal-content {
+    --background: linear-gradient(135deg, #0a0a0a 0%, #1a0f0f 50%, #0a0a0a 100%);
+  }
+}
+
+// Reduce motion for accessibility
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .relationship-option:active,
+  .save-button:hover:not(.button-disabled) {
+    transform: none !important;
+  }
+}
+
+// High contrast mode
+@media (prefers-contrast: high) {
+  .relationship-option,
+  .guardian-item,
+  .info-card {
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  .relationship-option.selected {
+    border-color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.2);
+  }
+}

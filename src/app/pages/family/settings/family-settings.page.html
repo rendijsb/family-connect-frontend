@@ -1,0 +1,378 @@
+<ion-header [translucent]="true" class="settings-header">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button class="back-button" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-back-button>
+    </ion-buttons>
+
+    <ion-title class="header-title">
+      @if (family()) {
+      <div class="title-content">
+        <span class="page-title">Family Settings</span>
+        <span class="family-name">{{ family()!.name }}</span>
+      </div>
+      }
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button
+        class="save-button"
+        [disabled]="isSaving()"
+        (click)="saveBasicSettings()"
+      >
+        <ion-icon name="save-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="settings-content">
+  <!-- Refresher -->
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content
+      pulling-icon="arrow-down-outline"
+      pulling-text="Pull to refresh"
+      refreshing-spinner="crescent"
+      refreshing-text="Refreshing..."
+    >
+    </ion-refresher-content>
+  </ion-refresher>
+
+  @if (family()) {
+  <div class="settings-container">
+    <!-- Basic Settings -->
+    <ion-card class="settings-card">
+      <ion-card-header>
+        <ion-card-title class="section-title">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          Basic Information
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <form [formGroup]="familyForm" (ngSubmit)="saveBasicSettings()">
+          <ion-item class="form-item">
+            <ion-label position="stacked">Family Name</ion-label>
+            <ion-input
+              formControlName="name"
+              placeholder="Enter family name"
+              maxlength="50"
+              counter="true"
+            >
+            </ion-input>
+          </ion-item>
+
+          <ion-item class="form-item">
+            <ion-label position="stacked">Description</ion-label>
+            <ion-textarea
+              formControlName="description"
+              placeholder="Tell everyone about your family..."
+              maxlength="500"
+              counter="true"
+              autoGrow="true"
+            >
+            </ion-textarea>
+          </ion-item>
+
+          <ion-item class="form-item">
+            <ion-label position="stacked">Privacy Setting</ion-label>
+            <ion-select
+              formControlName="privacy"
+              interface="popover"
+              placeholder="Choose privacy level"
+            >
+              <ion-select-option [value]="FamilyPrivacyEnum.PUBLIC">
+                <div class="privacy-option">
+                  <ion-icon name="globe-outline"></ion-icon>
+                  <div>
+                    <div class="option-title">Public</div>
+                    <div class="option-desc">Anyone can find and join</div>
+                  </div>
+                </div>
+              </ion-select-option>
+
+              <ion-select-option [value]="FamilyPrivacyEnum.PRIVATE">
+                <div class="privacy-option">
+                  <ion-icon name="lock-closed-outline"></ion-icon>
+                  <div>
+                    <div class="option-title">Private</div>
+                    <div class="option-desc">Join code required</div>
+                  </div>
+                </div>
+              </ion-select-option>
+
+              <ion-select-option [value]="FamilyPrivacyEnum.INVITE_ONLY">
+                <div class="privacy-option">
+                  <ion-icon name="key-outline"></ion-icon>
+                  <div>
+                    <div class="option-title">Invite Only</div>
+                    <div class="option-desc">Invitations only</div>
+                  </div>
+                </div>
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <div class="form-row">
+            <ion-item class="form-item half">
+              <ion-label position="stacked">Timezone</ion-label>
+              <ion-select formControlName="timezone" interface="popover">
+                @for (timezone of timezones; track timezone.value) {
+                <ion-select-option [value]="timezone.value">
+                  {{ timezone.label }}
+                </ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+
+            <ion-item class="form-item half">
+              <ion-label position="stacked">Language</ion-label>
+              <ion-select formControlName="language" interface="popover">
+                @for (language of languages; track language.value) {
+                <ion-select-option [value]="language.value">
+                  {{ language.label }}
+                </ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+          </div>
+
+          <ion-item class="form-item">
+            <ion-label position="stacked">Maximum Members</ion-label>
+            <ion-input
+              formControlName="maxMembers"
+              type="number"
+              min="2"
+              max="100"
+              placeholder="20"
+            >
+            </ion-input>
+          </ion-item>
+
+          <div class="form-actions">
+            <ion-button
+              type="submit"
+              expand="block"
+              [disabled]="familyForm.invalid || isSaving()"
+            >
+              <ion-icon name="save-outline" slot="start"></ion-icon>
+              Save Basic Settings
+            </ion-button>
+          </div>
+        </form>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Security Settings -->
+    <ion-card class="settings-card">
+      <ion-card-header>
+        <ion-card-title class="section-title">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          Security & Privacy
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <form [formGroup]="securityForm" (ngSubmit)="saveSecuritySettings()">
+          @if (joinCode()) {
+          <div class="join-code-section">
+            <h3 class="subsection-title">Family Join Code</h3>
+            <div class="join-code-display">
+              <div class="join-code-value">{{ joinCode() }}</div>
+              <ion-button
+                size="small"
+                fill="outline"
+                color="primary"
+                (click)="generateNewJoinCode()"
+              >
+                <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                Generate New
+              </ion-button>
+            </div>
+          </div>
+          }
+
+          <ion-list class="settings-list">
+            <ion-item class="toggle-item">
+              <ion-label>
+                <h3>Enable Join Code</h3>
+                <p>Allow people to join using the family code</p>
+              </ion-label>
+              <ion-toggle
+                formControlName="joinCodeEnabled"
+                slot="end"
+              ></ion-toggle>
+            </ion-item>
+
+            <ion-item class="toggle-item">
+              <ion-label>
+                <h3>Auto-approve Invitations</h3>
+                <p>Automatically accept invitation requests</p>
+              </ion-label>
+              <ion-toggle
+                formControlName="autoApproveInvitations"
+                slot="end"
+              ></ion-toggle>
+            </ion-item>
+
+            <ion-item class="toggle-item">
+              <ion-label>
+                <h3>Require Approval for Joining</h3>
+                <p>Members must be approved before joining</p>
+              </ion-label>
+              <ion-toggle
+                formControlName="requireApprovalForJoining"
+                slot="end"
+              ></ion-toggle>
+            </ion-item>
+          </ion-list>
+
+          <div class="form-actions">
+            <ion-button
+              type="submit"
+              expand="block"
+              fill="outline"
+              [disabled]="isSaving()"
+            >
+              <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+              Save Security Settings
+            </ion-button>
+          </div>
+        </form>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Notification Settings -->
+    <ion-card class="settings-card">
+      <ion-card-header>
+        <ion-card-title class="section-title">
+          <ion-icon name="notifications-outline"></ion-icon>
+          Notification Preferences
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <form
+          [formGroup]="notificationForm"
+          (ngSubmit)="saveNotificationSettings()"
+        >
+          <ion-list class="settings-list">
+            <ion-item-divider>
+              <ion-label>General Notifications</ion-label>
+            </ion-item-divider>
+
+            <ion-item class="toggle-item">
+              <ion-label>
+                <h3>Email Notifications</h3>
+                <p>Receive notifications via email</p>
+              </ion-label>
+              <ion-toggle
+                formControlName="emailNotifications"
+                slot="end"
+              ></ion-toggle>
+            </ion-item>
+
+            <ion-item class="toggle-item">
+              <ion-label>
+                <h3>Push Notifications</h3>
+                <p>Receive push notifications on your device</p>
+              </ion-label>
+              <ion-toggle
+                formControlName="pushNotifications"
+                slot="end"
+              ></ion-toggle>
+            </ion-item>
+
+            <ion-item class="toggle-item">
+              <ion-label>
+                <h3>Daily Activity Digest</h3>
+                <p>Get a summary of family activity</p>
+              </ion-label>
+              <ion-toggle
+                formControlName="activityDigest"
+                slot="end"
+              ></ion-toggle>
+            </ion-item>
+
+            <ion-item-divider>
+              <ion-label>Activity Notifications</ion-label>
+            </ion-item-divider>
+
+            <ion-item class="toggle-item">
+              <ion-label>
+                <h3>Member Joined</h3>
+                <p>When someone joins the family</p>
+              </ion-label>
+              <ion-toggle
+                formControlName="memberJoined"
+                slot="end"
+              ></ion-toggle>
+            </ion-item>
+
+            <ion-item class="toggle-item">
+              <ion-label>
+                <h3>New Messages</h3>
+                <p>When someone sends a message</p>
+              </ion-label>
+              <ion-toggle formControlName="newMessage" slot="end"></ion-toggle>
+            </ion-item>
+
+            <ion-item class="toggle-item">
+              <ion-label>
+                <h3>Event Reminders</h3>
+                <p>Reminders for upcoming family events</p>
+              </ion-label>
+              <ion-toggle
+                formControlName="eventReminders"
+                slot="end"
+              ></ion-toggle>
+            </ion-item>
+          </ion-list>
+
+          <div class="form-actions">
+            <ion-button
+              type="submit"
+              expand="block"
+              fill="outline"
+              color="secondary"
+              [disabled]="isSaving()"
+            >
+              <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+              Save Notification Settings
+            </ion-button>
+          </div>
+        </form>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Danger Zone -->
+    @if (canDeleteFamily()) {
+    <ion-card class="settings-card danger-card">
+      <ion-card-header>
+        <ion-card-title class="section-title danger-title">
+          <ion-icon name="warning-outline"></ion-icon>
+          Danger Zone
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="danger-section">
+          <h3>Delete Family</h3>
+          <p>
+            Permanently delete this family and all its data. This action cannot
+            be undone.
+          </p>
+
+          <ion-button
+            expand="block"
+            color="danger"
+            fill="outline"
+            (click)="deleteFamily()"
+          >
+            <ion-icon name="trash-outline" slot="start"></ion-icon>
+            Delete Family Permanently
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+    }
+  </div>
+  }
+</ion-content>

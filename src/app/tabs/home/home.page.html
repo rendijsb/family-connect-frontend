@@ -1,0 +1,138 @@
+<ion-header [translucent]="true" class="home-header">
+  <ion-toolbar class="header-toolbar">
+    <ion-title class="header-title">
+      <div class="title-content">
+        <span class="greeting">Welcome back,</span>
+        <span class="username">{{ user?.name || 'User' }}</span>
+      </div>
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button class="notification-button">
+        <ion-icon name="notifications-outline"></ion-icon>
+      </ion-button>
+
+      <ion-avatar class="header-avatar">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541" [alt]="user?.name" />
+      </ion-avatar>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="home-content">
+  <!-- Refresher -->
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="home-container content-with-header">
+
+    <!-- Welcome Card -->
+    <ion-card class="welcome-card">
+      <ion-card-content class="welcome-content">
+        <div class="welcome-text">
+          <h2 class="welcome-title">🏠 Welcome to Family Connect</h2>
+          <p class="welcome-subtitle">Stay connected with your loved ones</p>
+        </div>
+        <div class="user-info">
+          <p class="user-role">Role: {{ user?.role?.displayName || 'Member' }}</p>
+          <p class="join-date">Member since: {{ user?.createdAt | date:'MMM yyyy' }}</p>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Quick Actions -->
+    <ion-card class="actions-card">
+      <ion-card-header>
+        <ion-card-title class="section-title">Quick Actions</ion-card-title>
+      </ion-card-header>
+      <ion-card-content class="actions-content">
+        <div class="actions-grid">
+          <div class="action-item" (click)="goToFamily()">
+            <div class="action-icon family">
+              <ion-icon name="people-outline"></ion-icon>
+            </div>
+            <span class="action-title">Family</span>
+          </div>
+
+          <div class="action-item">
+            <div class="action-icon chat">
+              <ion-icon name="chatbubble-outline"></ion-icon>
+            </div>
+            <span class="action-title">Chat</span>
+          </div>
+
+          <div class="action-item">
+            <div class="action-icon photos">
+              <ion-icon name="camera-outline"></ion-icon>
+            </div>
+            <span class="action-title">Photos</span>
+          </div>
+
+          <div class="action-item">
+            <div class="action-icon events">
+              <ion-icon name="calendar-outline"></ion-icon>
+            </div>
+            <span class="action-title">Events</span>
+          </div>
+
+          <div class="action-item">
+            <div class="action-icon location">
+              <ion-icon name="location-outline"></ion-icon>
+            </div>
+            <span class="action-title">Location</span>
+          </div>
+
+          <div class="action-item">
+            <div class="action-icon memories">
+              <ion-icon name="heart-outline"></ion-icon>
+            </div>
+            <span class="action-title">Memories</span>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Recent Activity -->
+    <ion-card class="activity-card">
+      <ion-card-header>
+        <ion-card-title class="section-title">Recent Activity</ion-card-title>
+      </ion-card-header>
+      <ion-card-content class="activity-content">
+        <div class="activity-item">
+          <div class="activity-icon">
+            <ion-icon name="heart-outline"></ion-icon>
+          </div>
+          <div class="activity-text">
+            <p class="activity-title">Welcome to Family Connect!</p>
+            <p class="activity-time">Just now</p>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Account Actions -->
+    <ion-card class="account-card">
+      <ion-card-content class="account-content">
+        <ion-button expand="block" fill="outline" class="account-button">
+          <ion-icon name="settings-outline" slot="start"></ion-icon>
+          Settings
+        </ion-button>
+
+        <ion-button expand="block" fill="clear" class="logout-button" (click)="onLogout()">
+          <ion-icon name="log-out-outline" slot="start"></ion-icon>
+          Logout
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+
+  <!-- Floating Action Button -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button class="fab-button">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>

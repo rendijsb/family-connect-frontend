@@ -1,0 +1,397 @@
+<ion-header [translucent]="true" class="detail-header">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-button class="back-button" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title class="header-title">
+      @if (family()) {
+        <div class="title-content">
+          <span class="family-name">{{ family()!.name }}</span>
+          <span class="member-count">{{ family()!.memberCount || 0 }} members</span>
+        </div>
+      }
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button class="notification-button">
+        <ion-icon name="notifications-outline"></ion-icon>
+      </ion-button>
+
+      <ion-button class="menu-button" (click)="presentFamilyOptions()">
+        <ion-icon name="ellipsis-vertical-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="detail-content">
+  <!-- Refresher -->
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content
+      pulling-icon="arrow-down-outline"
+      pulling-text="Pull to refresh"
+      refreshing-spinner="crescent"
+      refreshing-text="Refreshing...">
+    </ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading State -->
+  @if (isLoading() && !family()) {
+    <div class="loading-container">
+      <ion-skeleton-text animated class="skeleton-header"></ion-skeleton-text>
+      <ion-skeleton-text animated class="skeleton-card"></ion-skeleton-text>
+      <ion-skeleton-text animated class="skeleton-card"></ion-skeleton-text>
+    </div>
+  }
+
+  @if (family()) {
+    <div class="detail-container content-with-header">
+
+      <!-- Family Header -->
+      <div class="family-header">
+        <div class="family-banner">
+          <div class="family-avatar">
+            <ion-icon name="home-outline"></ion-icon>
+          </div>
+          <div class="family-info">
+            <h1 class="family-name">{{ family()!.name }}</h1>
+            @if (family()!.description) {
+              <p class="family-description">{{ family()!.description }}</p>
+            }
+            <div class="family-meta">
+              <div class="meta-item">
+                <ion-icon name="people-outline"></ion-icon>
+                <span>{{ family()!.memberCount || 0 }} members</span>
+              </div>
+              <div class="meta-item">
+                <ion-icon [name]="getPrivacyIcon(family()!.privacy)"></ion-icon>
+                <span>{{ getPrivacyLabel(family()!.privacy) }}</span>
+              </div>
+              <div class="meta-item">
+                <ion-icon name="time-outline"></ion-icon>
+                <span>Created {{ getTimeAgo(family()!.createdAt) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Segment Navigation -->
+      <ion-segment
+        [value]="selectedSegment()"
+        (ionChange)="segmentChanged($event)"
+        class="detail-segment">
+        <ion-segment-button value="overview">
+          <ion-icon name="home-outline"></ion-icon>
+          <ion-label>Overview</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="members">
+          <ion-icon name="people-outline"></ion-icon>
+          <ion-label>Members</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="activity">
+          <ion-icon name="pulse-outline"></ion-icon>
+          <ion-label>Activity</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+
+      <!-- Overview Tab -->
+      @if (selectedSegment() === 'overview') {
+        <div class="tab-content">
+
+          <!-- Quick Actions -->
+          <ion-card class="actions-card">
+            <ion-card-header>
+              <ion-card-title class="section-title">Quick Actions</ion-card-title>
+            </ion-card-header>
+            <ion-card-content class="actions-content">
+              <div class="actions-grid">
+                <div class="action-item" (click)="openFamilyChat()">
+                  <div class="action-icon chat">
+                    <ion-icon name="chatbubble-outline"></ion-icon>
+                  </div>
+                  <span class="action-title">Family Chat</span>
+                </div>
+
+                <div class="action-item" (click)="openFamilyPhotos()">
+                  <div class="action-icon photos">
+                    <ion-icon name="camera-outline"></ion-icon>
+                  </div>
+                  <span class="action-title">Photos</span>
+                </div>
+
+                <div class="action-item" (click)="openFamilyEvents()">
+                  <div class="action-icon events">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                  </div>
+                  <span class="action-title">Events</span>
+                </div>
+
+                <div class="action-item" (click)="openFamilyLocations()">
+                  <div class="action-icon location">
+                    <ion-icon name="location-outline"></ion-icon>
+                  </div>
+                  <span class="action-title">Locations</span>
+                </div>
+
+                <div class="action-item" (click)="openFamilyMemories()">
+                  <div class="action-icon memories">
+                    <ion-icon name="heart-outline"></ion-icon>
+                  </div>
+                  <span class="action-title">Memories</span>
+                </div>
+
+                @if (canInviteMembers()) {
+                  <div class="action-item" (click)="inviteMembers()">
+                    <div class="action-icon invite">
+                      <ion-icon name="person-add-outline"></ion-icon>
+                    </div>
+                    <span class="action-title">Invite</span>
+                  </div>
+                }
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- Join Code (if owner/moderator) -->
+          @if (canManageFamily() && family()!.joinCode) {
+            <ion-card class="join-code-card">
+              <ion-card-header>
+                <ion-card-title class="section-title">Family Join Code</ion-card-title>
+              </ion-card-header>
+              <ion-card-content class="join-code-content">
+                <div class="join-code-display">
+                  <div class="join-code-value">{{ family()!.joinCode }}</div>
+                  <div class="join-code-actions">
+                    <ion-button fill="clear" size="small" (click)="copyJoinCode()">
+                      <ion-icon name="copy-outline" slot="start"></ion-icon>
+                      Copy
+                    </ion-button>
+                    <ion-button fill="clear" size="small" (click)="shareJoinCode()">
+                      <ion-icon name="share-outline" slot="start"></ion-icon>
+                      Share
+                    </ion-button>
+                    <ion-button fill="clear" size="small" (click)="regenerateJoinCode()">
+                      <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                      New Code
+                    </ion-button>
+                  </div>
+                </div>
+                <p class="join-code-help">
+                  Share this code with family members to let them join your family.
+                </p>
+              </ion-card-content>
+            </ion-card>
+          }
+
+          <!-- Recent Activity -->
+          <ion-card class="activity-card">
+            <ion-card-header>
+              <ion-card-title class="section-title">Recent Activity</ion-card-title>
+            </ion-card-header>
+            <ion-card-content class="activity-content">
+              @if (recentActivities.length > 0) {
+                <div class="activity-list">
+                  @for (activity of recentActivities.slice(0, 5); track trackByActivityId($index, activity)) {
+                    <div class="activity-item">
+                      <div class="activity-icon">
+                        <ion-icon [name]="activity.icon"></ion-icon>
+                      </div>
+                      <div class="activity-text">
+                        <p class="activity-title">{{ activity.title }}</p>
+                        <p class="activity-time">{{ activity.timestamp }}</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="empty-activity">
+                  <ion-icon name="pulse-outline"></ion-icon>
+                  <p>No recent activity</p>
+                </div>
+              }
+            </ion-card-content>
+          </ion-card>
+
+        </div>
+      }
+
+      <!-- Members Tab -->
+      @if (selectedSegment() === 'members') {
+        <div class="tab-content">
+
+          <!-- Members List -->
+          <ion-card class="members-card">
+            <ion-card-header class="members-header">
+              <ion-card-title class="section-title">Family Members</ion-card-title>
+              @if (canInviteMembers()) {
+                <ion-button
+                  fill="clear"
+                  size="small"
+                  (click)="inviteMembers()">
+                  <ion-icon name="person-add-outline" slot="start"></ion-icon>
+                  Invite
+                </ion-button>
+              }
+            </ion-card-header>
+            <ion-card-content class="members-content">
+              @if (family()!.members && family()!.members!.length > 0) {
+                <div class="members-list">
+                  @for (member of family()!.members!; track trackByMemberId($index, member)) {
+                    <div class="member-item">
+
+                      <ion-avatar class="member-avatar">
+                        <img [src]="member.user?.avatar || 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'"
+                             [alt]="member.user?.name">
+                        <div class="role-badge" [class]="getRoleBadgeClass(member.role)">
+                          {{ getRoleInitial(member.role) }}
+                        </div>
+                      </ion-avatar>
+
+                      <div class="member-info">
+                        <h4 class="member-name">
+                          {{ member.nickname || member.user?.name }}
+                          @if (isCurrentUser(member)) {
+                            <span class="you-badge">You</span>
+                          }
+                        </h4>
+                        <p class="member-role">{{ getFamilyRoleName(member.role) }}</p>
+                        @if (member.relationship) {
+                          <p class="member-relationship">{{ member.relationship }}</p>
+                        }
+                        <p class="member-status">
+                          <ion-icon
+                            [name]="getMemberStatusIcon(member)"
+                            [style.color]="getMemberStatusColor(member)">
+                          </ion-icon>
+                          {{ getMemberStatusText(member) }}
+                        </p>
+                      </div>
+
+                      <div class="member-actions">
+                        <ion-button
+                          fill="clear"
+                          size="small"
+                          class="chat-btn"
+                          (click)="chatWithMember(member)">
+                          <ion-icon name="chatbubble-outline"></ion-icon>
+                        </ion-button>
+
+                        @if (canManageMember(member)) {
+                          <ion-button
+                            fill="clear"
+                            size="small"
+                            class="more-btn"
+                            (click)="presentMemberActions(member)">
+                            <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
+                          </ion-button>
+                        }
+                      </div>
+
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="empty-members">
+                  <ion-icon name="people-outline"></ion-icon>
+                  <p>No family members yet</p>
+                  @if (canInviteMembers()) {
+                    <ion-button
+                      size="small"
+                      (click)="inviteMembers()">
+                      Invite First Member
+                    </ion-button>
+                  }
+                </div>
+              }
+            </ion-card-content>
+          </ion-card>
+
+        </div>
+      }
+
+      <!-- Activity Tab -->
+      @if (selectedSegment() === 'activity') {
+        <div class="tab-content">
+
+          <!-- Activity Feed -->
+          <ion-card class="activity-feed-card">
+            <ion-card-header>
+              <ion-card-title class="section-title">Family Activity</ion-card-title>
+            </ion-card-header>
+            <ion-card-content class="activity-feed-content">
+              @if (recentActivities.length > 0) {
+                <div class="activity-feed">
+                  @for (activity of recentActivities; track trackByActivityId($index, activity); let i = $index) {
+                    <div class="activity-feed-item">
+
+                      <div class="activity-timeline">
+                        <div class="timeline-dot" [style.background-color]="activity.color"></div>
+                        @if (i < recentActivities.length - 1) {
+                          <div class="timeline-line"></div>
+                        }
+                      </div>
+
+                      <div class="activity-details">
+                        <div class="activity-header">
+                          <ion-avatar class="activity-avatar">
+                            <img [src]="activity.userAvatar || 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'" [alt]="activity.user">
+                          </ion-avatar>
+                          <div class="activity-meta">
+                            <h4 class="activity-title">{{ activity.title }}</h4>
+                            <p class="activity-user">{{ activity.user }}</p>
+                            <p class="activity-timestamp">{{ activity.timestamp }}</p>
+                          </div>
+                          <div class="activity-icon" [style.background-color]="activity.color + '20'">
+                            <ion-icon [name]="activity.icon" [style.color]="activity.color"></ion-icon>
+                          </div>
+                        </div>
+                        <p class="activity-description">{{ activity.description }}</p>
+                      </div>
+
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="empty-activity-feed">
+                  <ion-icon name="pulse-outline"></ion-icon>
+                  <p>No family activity yet</p>
+                  <p class="empty-subtitle">Activity will appear here as family members interact</p>
+                </div>
+              }
+            </ion-card-content>
+          </ion-card>
+
+        </div>
+      }
+
+    </div>
+  }
+
+  <!-- Floating Action Button -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button class="fab-button">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+    <ion-fab-list side="top">
+      <ion-fab-button color="light" (click)="openFamilyChat()">
+        <ion-icon name="chatbubble-outline"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button color="light" (click)="openFamilyPhotos()">
+        <ion-icon name="camera-outline"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button color="light" (click)="openFamilyEvents()">
+        <ion-icon name="calendar-outline"></ion-icon>
+      </ion-fab-button>
+      @if (canInviteMembers()) {
+        <ion-fab-button color="light" (click)="inviteMembers()">
+          <ion-icon name="person-add-outline"></ion-icon>
+        </ion-fab-button>
+      }
+    </ion-fab-list>
+  </ion-fab>
+
+</ion-content>

@@ -1,0 +1,11 @@
+<ion-button
+  fill="clear"
+  class="notification-button"
+  (click)="openNotifications()">
+  <ion-icon name="notifications-outline"></ion-icon>
+  @if (totalCount > 0) {
+    <ion-badge class="notification-badge">
+      {{ totalCount > 99 ? '99+' : totalCount }}
+    </ion-badge>
+  }
+</ion-button>

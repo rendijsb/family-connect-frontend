@@ -1,0 +1,268 @@
+<ion-content class="register-content" [scrollY]="true" [fullscreen]="false">
+  <div class="register-container">
+
+    <div class="header-section">
+      <ion-button fill="clear" class="back-button" routerLink="/login">
+        <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="(currentStep() / totalSteps()) * 100"></div>
+        </div>
+        <span class="progress-text">Step {{currentStep()}} of {{totalSteps()}}</span>
+      </div>
+    </div>
+
+    <div class="logo-section">
+      <div class="logo-circle">
+        <ion-icon name="person-outline" class="logo-icon"></ion-icon>
+      </div>
+      <h1 class="page-title">Create Account</h1>
+      @if (currentStep() === 1) {
+        <p class="page-subtitle">Let's get you started with Family Connect</p>
+      }
+      @if (currentStep() === 2) {
+        <p class="page-subtitle">Almost there! Set up your account security</p>
+      }
+    </div>
+
+    <ion-card class="register-card" #registerCard>
+      <ion-card-content class="card-content">
+        <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
+
+          @if (currentStep() === 1) {
+            <div class="form-step">
+
+              <ion-grid class="name-grid">
+                <ion-row>
+                  <ion-col size="6">
+                    <div class="input-group">
+                      <ion-item class="custom-item" lines="none">
+                        <ion-icon name="person-outline" slot="start" class="input-icon"></ion-icon>
+                        <ion-input
+                          type="text"
+                          placeholder="First Name"
+                          formControlName="firstName"
+                          class="custom-input"
+                          [appValidationError]="isSubmitted()">
+                        </ion-input>
+                      </ion-item>
+                    </div>
+                  </ion-col>
+                  <ion-col size="6">
+                    <div class="input-group">
+                      <ion-item class="custom-item" lines="none">
+                        <ion-input
+                          type="text"
+                          placeholder="Last Name"
+                          formControlName="lastName"
+                          class="custom-input"
+                          [appValidationError]="isSubmitted()">
+                        </ion-input>
+                      </ion-item>
+                    </div>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+
+              <div class="input-group">
+                <ion-item class="custom-item" lines="none">
+                  <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
+                  <ion-input
+                    type="email"
+                    placeholder="Email Address"
+                    formControlName="email"
+                    class="custom-input"
+                    [appValidationError]="isSubmitted()">
+                  </ion-input>
+                  @if (registerForm.get('email')?.valid && registerForm.get('email')?.touched) {
+                    <ion-icon
+                      name="checkmark-outline"
+                      slot="end"
+                      class="validation-icon success">
+                    </ion-icon>
+                  }
+                </ion-item>
+              </div>
+
+              <div class="input-group">
+                <ion-item class="custom-item" lines="none">
+                  <ion-icon name="phone-portrait-outline" slot="start" class="input-icon"></ion-icon>
+                  <ion-input
+                    type="tel"
+                    placeholder="Phone Number (Optional)"
+                    formControlName="phone"
+                    class="custom-input">
+                  </ion-input>
+                </ion-item>
+                <!-- Show phone is optional -->
+                <div class="input-hint">
+                  <span class="hint-text">Phone number is optional</span>
+                </div>
+              </div>
+
+            </div>
+          }
+
+          @if (currentStep() === 2) {
+            <div class="form-step">
+
+              <div class="input-group">
+                <ion-item class="custom-item" lines="none">
+                  <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
+                  <ion-input
+                    [type]="showPassword() ? 'text' : 'password'"
+                    placeholder="Create Password"
+                    formControlName="password"
+                    class="custom-input"
+                    [appValidationError]="isSubmitted()">
+                  </ion-input>
+                  <ion-icon
+                    [name]="showPassword() ? 'eye-off-outline' : 'eye-outline'"
+                    slot="end"
+                    class="password-toggle"
+                    (click)="togglePasswordVisibility()">
+                  </ion-icon>
+                </ion-item>
+
+                @if (registerForm.get('password')?.value) {
+                  <div class="password-strength">
+                    <div class="strength-bar">
+                      <div
+                        class="strength-fill"
+                        [style.width]="getPasswordStrength().width"
+                        [style.background-color]="getPasswordStrength().color">
+                      </div>
+                    </div>
+                    <span class="strength-text" [style.color]="getPasswordStrength().color">
+                      {{getPasswordStrength().strength}}
+                    </span>
+                  </div>
+                }
+
+              </div>
+
+              <div class="input-group">
+                <ion-item class="custom-item" lines="none">
+                  <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
+                  <ion-input
+                    [type]="showConfirmPassword() ? 'text' : 'password'"
+                    placeholder="Confirm Password"
+                    formControlName="confirmPassword"
+                    class="custom-input"
+                    [appValidationError]="isSubmitted()">
+                  </ion-input>
+                  <ion-icon
+                    [name]="showConfirmPassword() ? 'eye-off-outline' : 'eye-outline'"
+                    slot="end"
+                    class="password-toggle"
+                    (click)="toggleConfirmPasswordVisibility()">
+                  </ion-icon>
+                  @if (!registerForm.errors?.['passwordMismatch'] && registerForm.get('confirmPassword')?.value && registerForm.get('password')?.value) {
+                    <ion-icon
+                      name="checkmark-outline"
+                      slot="end"
+                      class="validation-icon success"
+                      style="margin-right: 40px;">
+                    </ion-icon>
+                  }
+                </ion-item>
+              </div>
+
+              <!-- Terms and Newsletter -->
+              <div class="checkbox-group">
+                <ion-item class="checkbox-item" lines="none">
+                  <ion-checkbox
+                    formControlName="agreeToTerms"
+                    class="custom-checkbox"
+                    [appValidationError]="isSubmitted()">
+                  </ion-checkbox>
+                  <ion-label class="checkbox-label">
+                    I agree to the <a href="#" class="terms-link">Terms of Service</a> and <a href="#" class="terms-link">Privacy Policy</a>
+                  </ion-label>
+                </ion-item>
+
+                <ion-item class="checkbox-item" lines="none">
+                  <ion-checkbox
+                    formControlName="subscribeToNewsletter"
+                    class="custom-checkbox">
+                  </ion-checkbox>
+                  <ion-label class="checkbox-label">
+                    Subscribe to our newsletter for family tips and updates
+                  </ion-label>
+                </ion-item>
+              </div>
+
+            </div>
+          }
+
+          <!-- Simplified button logic -->
+          <div class="button-group">
+            @if (currentStep() > 1) {
+              <ion-button
+                fill="outline"
+                expand="block"
+                class="secondary-button"
+                (click)="previousStep()">
+                Previous
+              </ion-button>
+            }
+
+            @if (currentStep() === 1) {
+              <ion-button
+                expand="block"
+                class="primary-button continue-button"
+                (click)="nextStep()">
+                Continue
+              </ion-button>
+            }
+
+            @if (currentStep() === 2) {
+              <ion-button
+                expand="block"
+                type="submit"
+                class="primary-button"
+                [disabled]="!registerForm.valid || isLoading()">
+                @if (!isLoading()) {
+                  <span>Create Account</span>
+                } @else {
+                  <ion-icon name="reload-outline" class="spinning"></ion-icon>
+                }
+              </ion-button>
+            }
+          </div>
+
+        </form>
+
+        @if (currentStep() === 1) {
+          <div class="social-section">
+            <div class="divider">
+              <span class="divider-text">or sign up with</span>
+            </div>
+
+            <div class="social-buttons">
+              <ion-button fill="outline" class="social-button google" (click)="onSocialRegister('google')">
+                <ion-icon name="logo-google" slot="start"></ion-icon>
+                Google
+              </ion-button>
+
+              <ion-button fill="outline" class="social-button apple" (click)="onSocialRegister('apple')">
+                <ion-icon name="logo-apple" slot="start"></ion-icon>
+                Apple
+              </ion-button>
+            </div>
+          </div>
+        }
+
+        <div class="signin-section">
+          <ion-text class="signin-text">
+            Already have an account?
+            <a routerLink="/login" class="signin-link">Sign in here</a>
+          </ion-text>
+        </div>
+
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

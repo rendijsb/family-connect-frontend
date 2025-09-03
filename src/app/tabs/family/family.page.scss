@@ -1,0 +1,681 @@
+.family-content {
+  --background: linear-gradient(135deg, #1a1a1a 0%, #2d1b1b 50%, #1a1a1a 100%);
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+.family-container {
+  padding: 16px;
+  padding-top: 0;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 90px); // Space for FAB and tab bar
+  min-height: calc(100vh - 60px); // Account for header
+}
+
+// Header Styles - Mobile Optimized
+.family-header {
+  --background: rgba(38, 38, 38, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-toolbar {
+  --background: transparent;
+  --color: white;
+  --padding-top: max(env(safe-area-inset-top, 0px), 8px);
+  --padding-bottom: 8px;
+  --min-height: 56px;
+}
+
+.title-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.page-title {
+  font-size: 18px;
+  color: white;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.family-count {
+  font-size: 12px;
+  color: #a1a1aa;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.notification-button,
+.menu-button {
+  --color: white;
+  margin-left: 6px;
+  width: 40px;
+  height: 40px;
+}
+
+// Quick Actions
+.quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+  margin-top: 16px;
+}
+
+.create-family-btn {
+  --background: linear-gradient(135deg, #dc2626, #b91c1c);
+  --color: white;
+  --border-radius: 12px;
+  height: 48px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+}
+
+.join-family-btn {
+  --border-color: rgba(255, 255, 255, 0.3);
+  --background: transparent;
+  --color: white;
+  --border-radius: 12px;
+  height: 48px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+// Loading States
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.skeleton-card {
+  height: 200px;
+  border-radius: 16px;
+  margin: 0;
+}
+
+// Empty State
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  margin-top: 40px;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+
+  ion-icon {
+    font-size: 40px;
+    color: #dc2626;
+  }
+}
+
+.empty-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 8px 0;
+}
+
+.empty-subtitle {
+  font-size: 14px;
+  color: #a1a1aa;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+}
+
+.empty-action-btn {
+  --background: linear-gradient(135deg, #dc2626, #b91c1c);
+  --color: white;
+  --border-radius: 12px;
+  height: 48px;
+  font-weight: 600;
+}
+
+// Families Grid
+.families-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.family-card {
+  --background: rgba(55, 55, 55, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  margin: 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  &:active {
+    transform: scale(0.98);
+    border-color: rgba(220, 38, 38, 0.3);
+  }
+}
+
+.family-content {
+  padding: 20px !important;
+}
+
+// Family Header Content
+.family-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.family-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.family-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 24px;
+    color: white;
+  }
+}
+
+.family-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.family-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.family-role {
+  font-size: 12px;
+  color: #a1a1aa;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.family-actions {
+  flex-shrink: 0;
+}
+
+.action-btn {
+  --color: #a1a1aa;
+  width: 36px;
+  height: 36px;
+}
+
+// Family Stats
+.family-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(75, 75, 75, 0.3);
+  border-radius: 12px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+
+  ion-icon {
+    font-size: 16px;
+    color: #dc2626;
+    margin-bottom: 2px;
+  }
+}
+
+.stat-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 10px;
+  color: #a1a1aa;
+  line-height: 1.1;
+}
+
+// Family Description
+.family-description {
+  font-size: 13px;
+  color: #e5e5e5;
+  line-height: 1.4;
+  margin: 0 0 16px 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+// Join Code Section
+.join-code-section {
+  margin-bottom: 16px;
+}
+
+.join-code {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 8px;
+}
+
+.join-code-label {
+  font-size: 11px;
+  color: #a1a1aa;
+  font-weight: 500;
+}
+
+.join-code-value {
+  font-size: 12px;
+  color: #dc2626;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  flex: 1;
+}
+
+.copy-btn {
+  --color: #dc2626;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+}
+
+// Recent Members
+.recent-members {
+  margin-bottom: 16px;
+}
+
+.members-avatars {
+  display: flex;
+  align-items: center;
+  gap: -8px; // Overlap avatars
+}
+
+.member-avatar {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(38, 38, 38, 0.8);
+  flex-shrink: 0;
+  margin-left: -8px;
+
+  &:first-child {
+    margin-left: 0;
+  }
+}
+
+.more-members {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(38, 38, 38, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: white;
+  font-weight: 600;
+  margin-left: -8px;
+}
+
+// Card Actions
+.card-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 20px;
+  background: rgba(45, 45, 45, 0.5);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.view-btn,
+.chat-btn,
+.settings-btn {
+  --color: #a1a1aa;
+  --background: transparent;
+  flex: 1;
+  height: 36px;
+  font-size: 12px;
+  margin: 0;
+
+  &:hover {
+    --color: #dc2626;
+  }
+}
+
+// FAB
+.fab-button {
+  --background: linear-gradient(135deg, #dc2626, #b91c1c);
+  --color: white;
+  box-shadow: 0 8px 32px rgba(220, 38, 38, 0.4);
+  transition: all 0.3s ease;
+  width: 56px;
+  height: 56px;
+
+  &:active {
+    transform: scale(0.9);
+    box-shadow: 0 4px 20px rgba(220, 38, 38, 0.6);
+  }
+
+  ion-icon {
+    font-size: 24px;
+  }
+}
+
+// Responsive Design - Mobile First
+@media (max-width: 430px) {
+  .family-container {
+    padding: 12px;
+    padding-top: 0;
+  }
+
+  .quick-actions {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .family-content {
+    padding: 16px !important;
+  }
+
+  .family-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .stat-item:last-child {
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+
+  .family-name {
+    font-size: 15px;
+  }
+
+  .family-role {
+    font-size: 11px;
+  }
+
+  .page-title {
+    font-size: 16px;
+  }
+
+  .family-count {
+    font-size: 11px;
+  }
+
+  .notification-button,
+  .menu-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .card-actions {
+    padding: 10px 16px;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 375px) {
+  .family-container {
+    padding: 10px;
+    padding-top: 0;
+  }
+
+  .family-content {
+    padding: 14px !important;
+  }
+
+  .family-avatar {
+    width: 40px;
+    height: 40px;
+
+    ion-icon {
+      font-size: 20px;
+    }
+  }
+
+  .family-stats {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .stat-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: left;
+    gap: 8px;
+
+    ion-icon {
+      margin-bottom: 0;
+    }
+  }
+
+  .empty-icon {
+    width: 60px;
+    height: 60px;
+
+    ion-icon {
+      font-size: 30px;
+    }
+  }
+
+  .empty-title {
+    font-size: 18px;
+  }
+
+  .fab-button {
+    width: 52px;
+    height: 52px;
+
+    ion-icon {
+      font-size: 22px;
+    }
+  }
+}
+
+// Very small screens
+@media (max-width: 320px) {
+  .family-container {
+    padding: 8px;
+    padding-top: 0;
+  }
+
+  .quick-actions {
+    margin-bottom: 16px;
+  }
+
+  .create-family-btn,
+  .join-family-btn {
+    height: 44px;
+    font-size: 13px;
+  }
+
+  .family-name {
+    font-size: 14px;
+  }
+
+  .family-description {
+    font-size: 12px;
+  }
+}
+
+// iPhone specific optimizations
+@media screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) {
+  .header-toolbar {
+    --padding-top: max(env(safe-area-inset-top, 0px), 8px);
+  }
+
+  .family-container {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 100px);
+  }
+}
+
+// iPad and larger screens
+@media (min-width: 768px) {
+  .family-container {
+    padding: 24px;
+    padding-top: 0;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .quick-actions {
+    max-width: 400px;
+    margin: 16px auto 32px;
+  }
+
+  .families-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .family-content {
+    padding: 24px !important;
+  }
+
+  .family-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .empty-state {
+    padding: 60px 40px;
+  }
+
+  .empty-icon {
+    width: 100px;
+    height: 100px;
+
+    ion-icon {
+      font-size: 50px;
+    }
+  }
+
+  .empty-title {
+    font-size: 24px;
+  }
+
+  .empty-subtitle {
+    font-size: 16px;
+  }
+}
+
+// Extra large screens
+@media (min-width: 1024px) {
+  .families-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+}
+
+// Landscape mode adjustments
+@media (orientation: landscape) and (max-height: 500px) {
+  .header-toolbar {
+    --padding-top: max(env(safe-area-inset-top, 0px), 4px);
+    --padding-bottom: 4px;
+    --min-height: 48px;
+  }
+
+  .family-container {
+    padding: 8px 16px;
+    padding-top: 0;
+  }
+
+  .quick-actions {
+    grid-template-columns: 1fr 1fr;
+    margin-bottom: 16px;
+  }
+
+  .families-grid {
+    gap: 12px;
+  }
+
+  .family-content {
+    padding: 16px !important;
+  }
+
+  .fab-button {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+// Dark mode enhancements
+@media (prefers-color-scheme: dark) {
+  .family-content {
+    --background: linear-gradient(135deg, #0a0a0a 0%, #1a0f0f 50%, #0a0a0a 100%);
+  }
+}
+
+// Reduce motion for accessibility
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .family-card:active,
+  .fab-button:active {
+    transform: none !important;
+  }
+}
+
+// High contrast mode
+@media (prefers-contrast: high) {
+  .family-card {
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  .family-avatar {
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+}

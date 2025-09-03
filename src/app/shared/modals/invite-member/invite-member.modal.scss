@@ -1,0 +1,566 @@
+.modal-content {
+  --background: linear-gradient(135deg, #1a1a1a 0%, #2d1b1b 50%, #1a1a1a 100%);
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+.invite-container {
+  padding: 20px;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  min-height: 100%;
+}
+
+// Modal Header
+.modal-header {
+  --background: rgba(38, 38, 38, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header-toolbar {
+  --background: transparent;
+  --color: white;
+  --min-height: 56px;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+}
+
+.close-button {
+  --color: #a1a1aa;
+  width: 40px;
+  height: 40px;
+
+  &:hover {
+    --color: white;
+  }
+}
+
+// Invite Header
+.invite-header {
+  text-align: center;
+  padding: 24px 0 32px 0;
+}
+
+.invite-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 8px 32px rgba(220, 38, 38, 0.3);
+
+  ion-icon {
+    font-size: 36px;
+    color: white;
+  }
+}
+
+.invite-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+.invite-subtitle {
+  font-size: 14px;
+  color: #a1a1aa;
+  margin: 0;
+  line-height: 1.4;
+}
+
+// Form Styles
+.invite-form {
+  flex: 1;
+}
+
+.form-section {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 16px 0;
+  padding-left: 4px;
+}
+
+// Input Groups
+.input-group {
+  margin-bottom: 20px;
+}
+
+.custom-item {
+  --background: rgba(55, 55, 55, 0.8);
+  --border-radius: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: 56px;
+  margin-bottom: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+
+  &:hover {
+    --background: rgba(65, 65, 65, 0.9);
+    border-color: rgba(220, 38, 38, 0.3);
+  }
+
+  &.item-has-focus {
+    --background: rgba(65, 65, 65, 0.9);
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+  }
+
+  &.error {
+    border-color: #ef4444;
+    --background: rgba(239, 68, 68, 0.1);
+  }
+}
+
+.textarea-item {
+  --min-height: auto;
+  align-items: flex-start;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.custom-input,
+.custom-textarea {
+  --color: white;
+  --placeholder-color: #a1a1aa;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.input-icon {
+  color: #dc2626;
+  font-size: 18px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.character-count {
+  text-align: right;
+  font-size: 11px;
+  color: #6b7280;
+  padding-right: 4px;
+  margin-top: 4px;
+}
+
+// Role Selection
+.role-list {
+  background: transparent;
+  padding: 0;
+}
+
+.role-option {
+  --background: rgba(55, 55, 55, 0.6);
+  --border-radius: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: auto;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 16px;
+
+  &:hover {
+    --background: rgba(65, 65, 65, 0.8);
+    border-color: rgba(220, 38, 38, 0.3);
+  }
+
+  &.selected {
+    --background: rgba(220, 38, 38, 0.1);
+    border-color: #dc2626;
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.role-content {
+  width: 100%;
+  padding: 0;
+}
+
+.role-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+}
+
+.role-icon {
+  font-size: 24px;
+  color: #dc2626;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.role-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.role-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.role-description {
+  font-size: 13px;
+  color: #a1a1aa;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.selection-icon {
+  color: #dc2626;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+// Form Actions
+.form-actions {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.send-button {
+  --background: linear-gradient(135deg, #dc2626, #b91c1c);
+  --background-hover: linear-gradient(135deg, #b91c1c, #991b1b);
+  --color: white;
+  --border-radius: 12px;
+  height: 56px;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgba(220, 38, 38, 0.4);
+  transition: all 0.3s ease;
+
+  &:hover:not(.button-disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(220, 38, 38, 0.5);
+  }
+
+  &.button-disabled {
+    --background: rgba(107, 114, 128, 0.5);
+    --color: rgba(255, 255, 255, 0.5);
+    box-shadow: none;
+  }
+}
+
+.cancel-button {
+  --color: #a1a1aa;
+  --border-radius: 12px;
+  height: 48px;
+  font-size: 15px;
+  font-weight: 500;
+
+  &:hover {
+    --color: white;
+  }
+}
+
+// Info Section
+.info-section {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-card {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+}
+
+.info-icon {
+  font-size: 20px;
+  color: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.info-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.info-text {
+  font-size: 13px;
+  color: #a1a1aa;
+  margin: 0;
+  line-height: 1.4;
+}
+
+// Responsive Design
+@media (max-width: 430px) {
+  .invite-container {
+    padding: 16px;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  }
+
+  .invite-header {
+    padding: 20px 0 24px 0;
+  }
+
+  .invite-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+
+    ion-icon {
+      font-size: 30px;
+    }
+  }
+
+  .invite-title {
+    font-size: 20px;
+  }
+
+  .invite-subtitle {
+    font-size: 13px;
+  }
+
+  .form-section {
+    margin-bottom: 24px;
+  }
+
+  .section-title {
+    font-size: 15px;
+  }
+
+  .custom-item {
+    --padding-start: 14px;
+    --padding-end: 14px;
+    --min-height: 52px;
+  }
+
+  .input-icon {
+    font-size: 16px;
+    margin-right: 10px;
+  }
+
+  .role-option {
+    padding: 14px;
+  }
+
+  .role-title {
+    font-size: 15px;
+  }
+
+  .role-description {
+    font-size: 12px;
+  }
+
+  .send-button {
+    height: 52px;
+    font-size: 15px;
+  }
+
+  .cancel-button {
+    height: 44px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 375px) {
+  .invite-container {
+    padding: 12px;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  }
+
+  .invite-header {
+    padding: 16px 0 20px 0;
+  }
+
+  .invite-icon {
+    width: 55px;
+    height: 55px;
+
+    ion-icon {
+      font-size: 28px;
+    }
+  }
+
+  .invite-title {
+    font-size: 18px;
+  }
+
+  .form-section {
+    margin-bottom: 20px;
+  }
+
+  .role-option {
+    padding: 12px;
+  }
+
+  .form-actions {
+    margin-top: 32px;
+    gap: 10px;
+  }
+}
+
+// iPad and larger screens
+@media (min-width: 768px) {
+  .invite-container {
+    padding: 32px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .invite-header {
+    padding: 32px 0 40px 0;
+  }
+
+  .invite-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 24px;
+
+    ion-icon {
+      font-size: 45px;
+    }
+  }
+
+  .invite-title {
+    font-size: 28px;
+  }
+
+  .invite-subtitle {
+    font-size: 16px;
+  }
+
+  .form-section {
+    margin-bottom: 40px;
+  }
+
+  .section-title {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+
+  .custom-item {
+    --min-height: 60px;
+    --padding-start: 20px;
+    --padding-end: 20px;
+  }
+
+  .role-option {
+    padding: 20px;
+  }
+
+  .send-button {
+    height: 60px;
+    font-size: 18px;
+  }
+
+  .cancel-button {
+    height: 52px;
+    font-size: 16px;
+  }
+
+  .info-card {
+    padding: 20px;
+    gap: 16px;
+  }
+}
+
+// Landscape mode adjustments
+@media (orientation: landscape) and (max-height: 500px) {
+  .invite-header {
+    padding: 12px 0 16px 0;
+  }
+
+  .invite-icon {
+    width: 50px;
+    height: 50px;
+
+    ion-icon {
+      font-size: 25px;
+    }
+  }
+
+  .invite-title {
+    font-size: 18px;
+  }
+
+  .form-section {
+    margin-bottom: 20px;
+  }
+
+  .form-actions {
+    margin-top: 24px;
+  }
+
+  .info-section {
+    margin-top: 20px;
+    padding-top: 16px;
+  }
+}
+
+// Dark mode enhancements
+@media (prefers-color-scheme: dark) {
+  .modal-content {
+    --background: linear-gradient(135deg, #0a0a0a 0%, #1a0f0f 50%, #0a0a0a 100%);
+  }
+}
+
+// Reduce motion for accessibility
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .role-option:active,
+  .send-button:hover:not(.button-disabled) {
+    transform: none !important;
+  }
+}
+
+// High contrast mode
+@media (prefers-contrast: high) {
+  .custom-item,
+  .role-option,
+  .info-card {
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  .role-option.selected {
+    border-color: #dc2626;
+    background: rgba(220, 38, 38, 0.2);
+  }
+}

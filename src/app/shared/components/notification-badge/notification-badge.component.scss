@@ -1,0 +1,78 @@
+.notification-button {
+  --color: white;
+  position: relative;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+
+  &:hover {
+    --color: #dc2626;
+  }
+
+  ion-icon {
+    font-size: 20px;
+    transition: all 0.3s ease;
+  }
+}
+
+.notification-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  --background: #ef4444;
+  --color: white;
+  font-size: 10px;
+  font-weight: 600;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(38, 38, 38, 0.9);
+  animation: pulse 2s infinite;
+  z-index: 1;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 430px) {
+  .notification-button {
+    width: 36px;
+    height: 36px;
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+
+  .notification-badge {
+    top: 4px;
+    right: 4px;
+    font-size: 9px;
+    min-width: 14px;
+    height: 14px;
+    border-radius: 7px;
+  }
+}
+
+// Reduce motion for accessibility
+@media (prefers-reduced-motion: reduce) {
+  .notification-badge {
+    animation: none !important;
+  }
+}

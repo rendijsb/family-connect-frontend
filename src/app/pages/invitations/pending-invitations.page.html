@@ -1,0 +1,210 @@
+<ion-header [translucent]="true" class="invitations-header">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-button class="back-button" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title class="header-title">
+      <div class="title-content">
+        <span class="page-title">Family Invitations</span>
+        <span class="invitation-count">{{ getPendingInvitations().length }} pending</span>
+      </div>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="invitations-content">
+  <!-- Refresher -->
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content
+      pulling-icon="arrow-down-outline"
+      pulling-text="Pull to refresh"
+      refreshing-spinner="crescent"
+      refreshing-text="Refreshing...">
+    </ion-refresher-content>
+  </ion-refresher>
+
+  <div class="invitations-container content-with-header">
+
+    <!-- Loading State -->
+    @if (isLoading() && invitations().length === 0) {
+      <div class="loading-container">
+        @for (i of [1,2,3]; track i) {
+          <div class="skeleton-invitation">
+            <ion-skeleton-text animated style="width: 60px; height: 60px; border-radius: 12px;"></ion-skeleton-text>
+            <div class="skeleton-content">
+              <ion-skeleton-text animated style="width: 70%; height: 18px;"></ion-skeleton-text>
+              <ion-skeleton-text animated style="width: 50%; height: 14px;"></ion-skeleton-text>
+              <ion-skeleton-text animated style="width: 40%; height: 12px;"></ion-skeleton-text>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Pending Invitations -->
+    @if (getPendingInvitations().length > 0) {
+      <div class="section">
+        <h2 class="section-title">Pending Invitations</h2>
+
+        <div class="invitations-list">
+          @for (invitation of getPendingInvitations(); track trackByInvitationId($index, invitation)) {
+            <ion-card class="invitation-card pending">
+              <ion-card-content class="invitation-content">
+
+                <div class="invitation-header">
+                  <div class="family-icon">
+                    <ion-icon name="home-outline"></ion-icon>
+                  </div>
+
+                  <div class="invitation-info">
+                    <h3 class="family-name">{{ invitation.family?.name || 'Unknown Family' }}</h3>
+                    <p class="invitation-role">
+                      Join as {{ getFamilyRoleName(invitation.role) }}
+                    </p>
+                    <p class="invited-by">
+                      Invited by {{ invitation.inviter?.name || 'Family Member' }}
+                    </p>
+                  </div>
+
+                  <div class="invitation-status">
+                    <ion-badge
+                      class="expiry-badge"
+                      [style.background-color]="getExpiryColor(invitation.expiresAt)">
+                      {{ getExpiryText(invitation.expiresAt) }}
+                    </ion-badge>
+                  </div>
+                </div>
+
+                @if (invitation.message) {
+                  <div class="invitation-message">
+                    <ion-icon name="mail-outline"></ion-icon>
+                    <p>{{ invitation.message }}</p>
+                  </div>
+                }
+
+                <div class="invitation-meta">
+                  <div class="meta-item">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    <span>Invited {{ getTimeAgo(invitation.createdAt) }}</span>
+                  </div>
+
+                  <div class="meta-item">
+                    <ion-icon name="people-outline"></ion-icon>
+                    <span>{{ invitation.family?.memberCount || 0 }} members</span>
+                  </div>
+                </div>
+
+                <div class="invitation-actions">
+                  @if (!isExpired(invitation)) {
+                    <ion-button
+                      expand="block"
+                      class="accept-button"
+                      (click)="acceptInvitation(invitation)">
+                      <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+                      Accept Invitation
+                    </ion-button>
+
+                    <div class="secondary-actions">
+                      <ion-button
+                        fill="outline"
+                        size="small"
+                        class="preview-button"
+                        (click)="viewFamilyPreview(invitation)">
+                        <ion-icon name="home-outline" slot="start"></ion-icon>
+                        Preview Family
+                      </ion-button>
+
+                      <ion-button
+                        fill="clear"
+                        size="small"
+                        class="decline-button"
+                        (click)="declineInvitation(invitation)">
+                        <ion-icon name="close-outline" slot="start"></ion-icon>
+                        Decline
+                      </ion-button>
+                    </div>
+                  } @else {
+                    <div class="expired-notice">
+                      <ion-icon name="alert-circle-outline"></ion-icon>
+                      <span>This invitation has expired</span>
+                    </div>
+                  }
+                </div>
+
+              </ion-card-content>
+            </ion-card>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Processed Invitations -->
+    @if (getProcessedInvitations().length > 0) {
+      <div class="section">
+        <h2 class="section-title">Recent Activity</h2>
+
+        <div class="invitations-list">
+          @for (invitation of getProcessedInvitations(); track trackByInvitationId($index, invitation)) {
+            <ion-card class="invitation-card processed">
+              <ion-card-content class="invitation-content-simple">
+
+                <div class="simple-header">
+                  <div class="family-icon small">
+                    <ion-icon name="home-outline"></ion-icon>
+                  </div>
+
+                  <div class="invitation-info">
+                    <h4 class="family-name">{{ invitation.family?.name || 'Unknown Family' }}</h4>
+                    <p class="status-text">
+                      {{ getInvitationStatusLabel(invitation.status) }}
+                      {{ getTimeAgo(invitation.acceptedAt || invitation.declinedAt || invitation.updatedAt) }}
+                    </p>
+                  </div>
+
+                  <ion-badge
+                    class="status-badge"
+                    [style.background-color]="getInvitationStatusColor(invitation.status)">
+                    {{ getInvitationStatusLabel(invitation.status) }}
+                  </ion-badge>
+                </div>
+
+              </ion-card-content>
+            </ion-card>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading() && invitations().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">
+          <ion-icon name="mail-outline"></ion-icon>
+        </div>
+        <h3 class="empty-title">No Invitations</h3>
+        <p class="empty-subtitle">
+          You don't have any family invitations at the moment.
+          When someone invites you to join their family, you'll see it here.
+        </p>
+        <ion-button fill="outline" (click)="goBack()">
+          <ion-icon name="home-outline" slot="start"></ion-icon>
+          Browse Families
+        </ion-button>
+      </div>
+    }
+
+    @if (!isLoading() && getPendingInvitations().length === 0 && getProcessedInvitations().length > 0) {
+      <div class="no-pending-state">
+        <div class="info-icon">
+          <ion-icon name="checkmark-outline"></ion-icon>
+        </div>
+        <h4 class="info-title">All Caught Up!</h4>
+        <p class="info-subtitle">You have no pending family invitations.</p>
+      </div>
+    }
+
+  </div>
+</ion-content>

@@ -1,0 +1,31 @@
+<ion-tabs>
+  <ion-tab-bar slot="bottom" class="custom-tab-bar">
+    <ion-tab-button tab="home" class="custom-tab-button">
+      <ion-icon name="home-outline"></ion-icon>
+      <ion-label>Home</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="family" class="custom-tab-button">
+      <ion-icon name="people-outline"></ion-icon>
+      <ion-label>Family</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="chat" class="custom-tab-button">
+      <ion-icon name="chatbubble-outline"></ion-icon>
+      <ion-label>Chat</ion-label>
+      <div class="notification-badge" *ngIf="unreadMessages > 0">
+        {{ unreadMessages > 99 ? '99+' : unreadMessages }}
+      </div>
+    </ion-tab-button>
+
+    <ion-tab-button tab="photos" class="custom-tab-button">
+      <ion-icon name="camera-outline"></ion-icon>
+      <ion-label>Photos</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="profile" class="custom-tab-button">
+      <ion-icon name="person-outline"></ion-icon>
+      <ion-label>Profile</ion-label>
+    </ion-tab-button>
+  </ion-tab-bar>
+</ion-tabs>

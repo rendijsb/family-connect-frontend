@@ -1,0 +1,131 @@
+<ion-header class="modal-header">
+  <ion-toolbar class="header-toolbar">
+    <ion-title class="header-title">Set Relationship</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button
+        fill="clear"
+        class="close-button"
+        (click)="dismiss()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-content">
+  <div class="relationship-container">
+
+    <!-- Header Section -->
+    <div class="relationship-header">
+      <div class="relationship-icon">
+        <ion-icon name="people-outline"></ion-icon>
+      </div>
+      <h2 class="relationship-title">Define Relationship</h2>
+      <p class="relationship-subtitle">How is {{ memberName }} related to you?</p>
+    </div>
+
+    <!-- Relationship Form -->
+    <form [formGroup]="relationshipForm" (ngSubmit)="onSaveRelationship()" class="relationship-form">
+
+      <!-- Relationship Selection -->
+      <div class="form-section">
+        <h3 class="section-title">Relationship Type</h3>
+
+        <ion-list class="relationship-list">
+          @for (option of relationshipOptions; track option.value) {
+            <ion-item
+              class="relationship-option"
+              [class.selected]="relationshipForm.get('relationshipType')?.value === option.value"
+              (click)="selectRelationship(option.value)"
+              button>
+
+              <div class="relationship-content">
+                <div class="relationship-header">
+                  <div class="relationship-option-icon">
+                    <ion-icon [name]="option.icon"></ion-icon>
+                  </div>
+                  <div class="relationship-info">
+                    <h4 class="relationship-label">{{ option.label }}</h4>
+                    <p class="relationship-description">{{ option.description }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <ion-icon
+                [name]="relationshipForm.get('relationshipType')?.value === option.value ? 'radio-button-on-outline' : 'radio-button-off-outline'"
+                slot="end"
+                class="selection-icon">
+              </ion-icon>
+            </ion-item>
+          }
+        </ion-list>
+      </div>
+
+      <!-- Guardian Option -->
+      <div class="form-section">
+        <h3 class="section-title">Additional Options</h3>
+
+        <div class="guardian-section">
+          <ion-item class="guardian-item" lines="none">
+            <div class="guardian-content">
+              <div class="guardian-header">
+                <div class="guardian-icon">
+                  <ion-icon name="shield-checkmark-outline"></ion-icon>
+                </div>
+                <div class="guardian-info">
+                  <h4 class="guardian-title">Guardian/Caregiver</h4>
+                  <p class="guardian-description">
+                    This person is a legal guardian or primary caregiver
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <ion-checkbox
+              formControlName="isGuardian"
+              slot="end"
+              class="guardian-checkbox">
+            </ion-checkbox>
+          </ion-item>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <ion-button
+          expand="block"
+          type="submit"
+          class="save-button"
+          [disabled]="!relationshipForm.valid">
+          <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+          Save Relationship
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="clear"
+          class="cancel-button"
+          (click)="dismiss()">
+          Cancel
+        </ion-button>
+      </div>
+
+    </form>
+
+    <!-- Info Section -->
+    <div class="info-section">
+      <div class="info-card">
+        <ion-icon name="information-circle-outline" class="info-icon"></ion-icon>
+        <div class="info-content">
+          <h4 class="info-title">About Relationships</h4>
+          <p class="info-text">
+            Setting relationships helps organize your family tree and can be used for
+            permissions and family insights. You can change this anytime.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

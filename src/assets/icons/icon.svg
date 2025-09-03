@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#dc2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b91c1c;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="256" cy="256" r="256" fill="url(#grad1)"/>
+  <g fill="white">
+    <!-- Family icon with hearts -->
+    <circle cx="200" cy="180" r="35"/>
+    <circle cx="312" cy="180" r="35"/>
+    <circle cx="256" cy="280" r="25"/>
+    <circle cx="180" cy="280" r="25"/>
+    <circle cx="332" cy="280" r="25"/>
+
+    <!-- Heart in center -->
+    <path d="M256 320c-20-15-50-35-50-65 0-20 15-35 35-35s35 15 35 35c0 30-30 50-50 65z"/>
+  </g>
+</svg>

@@ -1,0 +1,635 @@
+.invitations-content {
+  --background: linear-gradient(135deg, #1a1a1a 0%, #2d1b1b 50%, #1a1a1a 100%);
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+.invitations-container {
+  padding: 16px;
+  padding-top: 0;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  min-height: calc(100vh - 60px);
+}
+
+// Header Styles
+.invitations-header {
+  --background: rgba(38, 38, 38, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-toolbar {
+  --background: transparent;
+  --color: white;
+  --padding-top: max(env(safe-area-inset-top, 0px), 8px);
+  --padding-bottom: 8px;
+  --min-height: 56px;
+}
+
+.title-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.page-title {
+  font-size: 16px;
+  color: white;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.invitation-count {
+  font-size: 12px;
+  color: #a1a1aa;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.back-button {
+  --color: white;
+  width: 40px;
+  height: 40px;
+}
+
+// Loading States
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.skeleton-invitation {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(55, 55, 55, 0.5);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.skeleton-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// Section Styles
+.section {
+  margin-bottom: 32px;
+  margin-top: 16px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 16px 0;
+  padding-left: 4px;
+}
+
+// Invitations List
+.invitations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.invitation-card {
+  --background: rgba(55, 55, 55, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  margin: 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+
+  &.pending {
+    border-color: rgba(245, 158, 11, 0.3);
+    background: rgba(245, 158, 11, 0.05);
+  }
+
+  &.processed {
+    border-color: rgba(107, 114, 128, 0.3);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.invitation-content {
+  padding: 20px !important;
+}
+
+.invitation-content-simple {
+  padding: 16px !important;
+}
+
+// Invitation Header
+.invitation-header {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  align-items: flex-start;
+}
+
+.family-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3);
+
+  &.small {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+
+  ion-icon {
+    font-size: 28px;
+    color: white;
+
+    .small & {
+      font-size: 20px;
+    }
+  }
+}
+
+.invitation-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.family-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+
+  .processed & {
+    font-size: 15px;
+    margin-bottom: 2px;
+  }
+}
+
+.invitation-role {
+  font-size: 14px;
+  color: #f59e0b;
+  font-weight: 500;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.invited-by {
+  font-size: 13px;
+  color: #a1a1aa;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.status-text {
+  font-size: 13px;
+  color: #a1a1aa;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.invitation-status {
+  flex-shrink: 0;
+}
+
+.expiry-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+  color: white;
+  min-width: auto;
+  height: auto;
+}
+
+.status-badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 6px;
+  border-radius: 10px;
+  color: white;
+  min-width: auto;
+  height: auto;
+}
+
+// Invitation Message
+.invitation-message {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 12px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+  margin-bottom: 16px;
+
+  ion-icon {
+    font-size: 16px;
+    color: #3b82f6;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  p {
+    font-size: 13px;
+    color: #e5e5e5;
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
+// Invitation Meta
+.invitation-meta {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #a1a1aa;
+
+  ion-icon {
+    font-size: 14px;
+    color: #dc2626;
+  }
+}
+
+// Invitation Actions
+.invitation-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.accept-button {
+  --background: linear-gradient(135deg, #22c55e, #16a34a);
+  --color: white;
+  --border-radius: 12px;
+  height: 48px;
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgba(34, 197, 94, 0.3);
+}
+
+.secondary-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.preview-button {
+  --border-color: rgba(255, 255, 255, 0.3);
+  --background: transparent;
+  --color: white;
+  --border-radius: 12px;
+  height: 40px;
+  font-size: 13px;
+  flex: 1;
+}
+
+.decline-button {
+  --color: #ef4444;
+  --border-radius: 12px;
+  height: 40px;
+  font-size: 13px;
+  flex: 1;
+}
+
+.expired-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 500;
+
+  ion-icon {
+    font-size: 16px;
+  }
+}
+
+// Simple Header (for processed invitations)
+.simple-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+// Empty States
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  margin-top: 40px;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+
+  ion-icon {
+    font-size: 40px;
+    color: #dc2626;
+  }
+}
+
+.empty-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 8px 0;
+}
+
+.empty-subtitle {
+  font-size: 14px;
+  color: #a1a1aa;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+  max-width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.no-pending-state {
+  text-align: center;
+  padding: 32px 20px;
+  margin-top: 20px;
+}
+
+.info-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+
+  ion-icon {
+    font-size: 30px;
+    color: #22c55e;
+  }
+}
+
+.info-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 6px 0;
+}
+
+.info-subtitle {
+  font-size: 13px;
+  color: #a1a1aa;
+  margin: 0;
+}
+
+// Responsive Design
+@media (max-width: 430px) {
+  .invitations-container {
+    padding: 12px;
+    padding-top: 0;
+  }
+
+  .invitation-content {
+    padding: 16px !important;
+  }
+
+  .invitation-header {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .family-icon {
+    width: 48px;
+    height: 48px;
+
+    ion-icon {
+      font-size: 24px;
+    }
+  }
+
+  .family-name {
+    font-size: 16px;
+  }
+
+  .invitation-role {
+    font-size: 13px;
+  }
+
+  .invited-by {
+    font-size: 12px;
+  }
+
+  .invitation-meta {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .secondary-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .preview-button,
+  .decline-button {
+    height: 36px;
+    font-size: 12px;
+  }
+
+  .accept-button {
+    height: 44px;
+    font-size: 15px;
+  }
+
+  .section-title {
+    font-size: 16px;
+  }
+
+  .page-title {
+    font-size: 15px;
+  }
+
+  .invitation-count {
+    font-size: 11px;
+  }
+
+  .back-button {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 375px) {
+  .invitations-container {
+    padding: 10px;
+    padding-top: 0;
+  }
+
+  .invitation-content {
+    padding: 14px !important;
+  }
+
+  .family-icon {
+    width: 44px;
+    height: 44px;
+
+    ion-icon {
+      font-size: 22px;
+    }
+
+    &.small {
+      width: 36px;
+      height: 36px;
+
+      ion-icon {
+        font-size: 18px;
+      }
+    }
+  }
+
+  .invitation-message {
+    padding: 10px;
+  }
+
+  .meta-item {
+    font-size: 11px;
+  }
+}
+
+// iPhone specific optimizations
+@media screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) {
+  .header-toolbar {
+    --padding-top: max(env(safe-area-inset-top, 0px), 8px);
+  }
+
+  .invitations-container {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 34px);
+  }
+}
+
+// iPad and larger screens
+@media (min-width: 768px) {
+  .invitations-container {
+    padding: 24px;
+    padding-top: 0;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .invitation-content {
+    padding: 24px !important;
+  }
+
+  .family-icon {
+    width: 64px;
+    height: 64px;
+
+    ion-icon {
+      font-size: 32px;
+    }
+  }
+
+  .family-name {
+    font-size: 20px;
+  }
+
+  .secondary-actions {
+    flex-direction: row;
+  }
+
+  .empty-state {
+    padding: 80px 40px;
+  }
+
+  .empty-icon {
+    width: 100px;
+    height: 100px;
+
+    ion-icon {
+      font-size: 50px;
+    }
+  }
+}
+
+// Landscape mode adjustments
+@media (orientation: landscape) and (max-height: 500px) {
+  .header-toolbar {
+    --padding-top: max(env(safe-area-inset-top, 0px), 4px);
+    --padding-bottom: 4px;
+    --min-height: 48px;
+  }
+
+  .invitations-container {
+    padding: 8px 16px;
+    padding-top: 0;
+  }
+
+  .invitation-content {
+    padding: 16px !important;
+  }
+
+  .empty-state {
+    padding: 40px 20px;
+  }
+}
+
+// Reduce motion for accessibility
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .invitation-card:active {
+    transform: none !important;
+  }
+}
+
+// High contrast mode
+@media (prefers-contrast: high) {
+  .invitation-card {
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  .expiry-badge,
+  .status-badge {
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+}
