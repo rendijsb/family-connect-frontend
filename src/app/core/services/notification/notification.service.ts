@@ -33,8 +33,13 @@ export class NotificationService {
     }
 
     try {
+      // Check if push notifications are supported
+      const permissions = await PushNotifications.checkPermissions();
+      console.log('Current notification permissions:', permissions);
+      
       // Request permission first
       const permResult = await PushNotifications.requestPermissions();
+      console.log('Permission request result:', permResult);
       
       if (permResult.receive !== 'granted') {
         console.warn('Push notification permission denied');

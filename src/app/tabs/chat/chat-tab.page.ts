@@ -74,20 +74,27 @@ export class ChatTabPage implements OnInit, OnDestroy {
   private loadAllChatRooms() {
     this.isLoading.set(true);
 
-    // Get all families first
-    this.familyService.families$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(families => {
-        if (families.length === 0) {
-          // Load families if not already loaded
-          this.familyService.getMyFamilies()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe();
-        } else {
-          // Load chat rooms for each family
-          this.loadChatRoomsForFamilies(families);
-        }
-      });
+    const currentFamilies = this.familyService.getFamilies();
+
+    if (currentFamilies.length === 0) {
+      this.familyService.getMyFamilies()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            if (response.success && response.data.length > 0) {
+              this.loadChatRoomsForFamilies(response.data);
+            } else {
+              this.isLoading.set(false);
+            }
+          },
+          error: (error) => {
+            console.error('Failed to load families:', error);
+            this.isLoading.set(false);
+          }
+        });
+    } else {
+      this.loadChatRoomsForFamilies(currentFamilies);
+    }
   }
 
   private async loadChatRoomsForFamilies(families: Family[]) {
