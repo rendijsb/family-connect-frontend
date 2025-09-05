@@ -34,26 +34,13 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./pages/invitations/pending-invitations.page').then(m => m.PendingInvitationsPage)
   },
-  // {
-  //   path: 'profile/:userId',
-  //   canActivate: [authGuard],
-  //   loadComponent: () => import('./pages/profile/profile.page').then(m => m.ProfilePage)
-  // },
-  // {
-  //   path: 'chat',
-  //   canActivate: [authGuard],
-  //   loadChildren: () => import('./pages/chat/chat.routes').then(m => m.chatRoutes)
-  // },
-  // {
-  //   path: 'not-found',
-  //   loadComponent: () => import('./pages/not-found/not-found.page').then(m => m.NotFoundPage)
-  // },
-  // {
-  //   path: 'unauthorized',
-  //   loadComponent: () => import('./pages/unauthorized/unauthorized.page').then(m => m.UnauthorizedPage)
-  // },
+  {
+    path: 'family',
+    canActivate: [authGuard],
+    loadChildren: () => import('./pages/chat/chat.routes').then(m => m.chatRoutes)
+  },
   {
     path: '**',
-    redirectTo: '/not-found'
+    redirectTo: '/login'
   }
 ];

@@ -1,0 +1,53 @@
+.page-header {
+  --background: linear-gradient(135deg, #1f2937, #374151);
+}
+
+.custom-toolbar {
+  --background: transparent;
+  --color: white;
+}
+
+.page-title {
+  color: white;
+  font-weight: 600;
+}
+
+.page-content {
+  --background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 40px;
+}
+
+.loading-spinner {
+  text-align: center;
+  color: white;
+}
+
+.loading-icon {
+  font-size: 48px;
+  color: #22c55e;
+  margin-bottom: 16px;
+  animation: pulse 2s infinite;
+}
+
+.loading-spinner p {
+  color: #a1a1aa;
+  font-size: 16px;
+  margin: 0;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

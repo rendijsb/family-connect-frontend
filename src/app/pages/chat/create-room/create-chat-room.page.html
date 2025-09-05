@@ -1,0 +1,20 @@
+<ion-header class="page-header">
+  <ion-toolbar class="custom-toolbar">
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title class="page-title">Create Chat Room</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content">
+  <div class="loading-container" *ngIf="isLoading()">
+    <div class="loading-spinner">
+      <ion-icon name="chatbubble-outline" class="loading-icon"></ion-icon>
+      <p>Loading family members...</p>
+    </div>
+  </div>
+</ion-content>

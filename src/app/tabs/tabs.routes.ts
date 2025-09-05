@@ -14,10 +14,10 @@ export const routes: Routes = [
         path: 'family',
         loadComponent: () => import('./family/family.page').then(m => m.FamilyPage)
       },
-      // {
-      //   path: 'chat',
-      //   loadComponent: () => import('./chat/chat.page').then(m => m.ChatPage)
-      // },
+      {
+        path: 'chat',
+        loadComponent: () => import('./chat/chat-tab.page').then(m => m.ChatTabPage)
+      },
       // {
       //   path: 'photos',
       //   loadComponent: () => import('./photos/photos.page').then(m => m.PhotosPage)

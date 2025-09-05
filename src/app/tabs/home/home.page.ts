@@ -48,6 +48,10 @@ export class HomePage {
     }, 2000);
   }
 
+  goToChat() {
+    this.router.navigate(['/tabs/chat']);
+  }
+
   goToFamily() {
     this.router.navigate(['/tabs/family']);
   }

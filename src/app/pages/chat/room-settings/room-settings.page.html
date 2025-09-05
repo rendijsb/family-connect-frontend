@@ -1,0 +1,252 @@
+<!-- frontend/src/app/pages/chat/room-settings/room-settings.page.html -->
+<ion-header [translucent]="true" class="room-settings-header">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-button class="back-button" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title class="header-title">
+      <div class="title-content">
+        <span class="page-title">Room Settings</span>
+        @if (chatRoom()) {
+          <span class="room-name">{{ chatRoom()!.name }}</span>
+        }
+      </div>
+    </ion-title>
+
+    <ion-buttons slot="end">
+      @if (canManageRoom()) {
+        <ion-button
+          class="save-button"
+          (click)="onSaveSettings()"
+          [disabled]="!settingsForm.valid || isLoading()">
+          <ion-icon name="save-outline"></ion-icon>
+        </ion-button>
+      }
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="room-settings-content">
+  <div class="settings-container content-with-header">
+
+    @if (chatRoom()) {
+      <!-- Room Information -->
+      <ion-card class="room-info-card">
+        <ion-card-header>
+          <ion-card-title class="card-title">Room Information</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <form [formGroup]="settingsForm" class="settings-form">
+
+            <!-- Room Name -->
+            <ion-item class="form-item" lines="none">
+              <ion-label position="stacked" class="form-label">Room Name</ion-label>
+              <ion-input
+                type="text"
+                placeholder="Enter room name"
+                formControlName="name"
+                class="form-input"
+                [readonly]="!canManageRoom()">
+              </ion-input>
+            </ion-item>
+
+            <!-- Room Description -->
+            <ion-item class="form-item textarea-item" lines="none">
+              <ion-label position="stacked" class="form-label">Description</ion-label>
+              <ion-textarea
+                placeholder="Room description (optional)"
+                formControlName="description"
+                class="form-textarea"
+                rows="3"
+                maxlength="200"
+                [readonly]="!canManageRoom()">
+              </ion-textarea>
+            </ion-item>
+
+            <!-- Room Type -->
+            <div class="info-item">
+              <div class="info-label">Room Type</div>
+              <div class="info-value">{{ getChatRoomTypeName(chatRoom()!.type) }}</div>
+            </div>
+
+            <!-- Privacy Toggle -->
+            @if (canManageRoom()) {
+              <ion-item class="toggle-item" lines="none">
+                <div class="toggle-content">
+                  <div class="toggle-info">
+                    <ion-label class="toggle-label">Private Room</ion-label>
+                    <p class="toggle-description">Only selected members can join this room</p>
+                  </div>
+                  <ion-toggle
+                    formControlName="isPrivate"
+                    class="privacy-toggle">
+                  </ion-toggle>
+                </div>
+              </ion-item>
+            } @else {
+              <div class="info-item">
+                <div class="info-label">Privacy</div>
+                <div class="info-value">
+                  <ion-icon [name]="chatRoom()!.isPrivate ? 'lock-closed-outline' : 'eye-outline'"></ion-icon>
+                  {{ chatRoom()!.isPrivate ? 'Private' : 'Public' }}
+                </div>
+              </div>
+            }
+
+          </form>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Room Members -->
+      <ion-card class="members-card">
+        <ion-card-header>
+          <div class="members-header">
+            <ion-card-title class="card-title">
+              Members ({{ roomMembers().length }})
+            </ion-card-title>
+            @if (canManageRoom()) {
+              <ion-button
+                fill="clear"
+                size="small"
+                class="add-members-btn"
+                (click)="addMembers()">
+                <ion-icon name="person-add-outline" slot="start"></ion-icon>
+                Add Members
+              </ion-button>
+            }
+          </div>
+        </ion-card-header>
+
+        <ion-card-content class="members-content">
+          @if (roomMembers().length > 0) {
+            <div class="members-list">
+              @for (member of roomMembers(); track member.userId) {
+                <div class="member-item">
+                  <div class="member-info">
+                    <ion-avatar class="member-avatar">
+                      <img [src]="getMemberAvatar(member)" [alt]="getMemberName(member)">
+                    </ion-avatar>
+
+                    <div class="member-details">
+                      <div class="member-name">{{ getMemberName(member) }}</div>
+                      <div class="member-role">
+                        @if (member.isAdmin) {
+                          <ion-chip class="admin-chip">
+                            <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
+                            <ion-label>Admin</ion-label>
+                          </ion-chip>
+                        } @else {
+                          <span class="member-role-text">Member</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+
+                  @if (canManageRoom() && member.userId !== currentUser()?.id) {
+                    <div class="member-actions">
+                      <ion-button
+                        fill="clear"
+                        size="small"
+                        class="admin-toggle-btn"
+                        (click)="toggleMemberAdmin(member)">
+                        <ion-icon [name]="member.isAdmin ? 'shield-checkmark' : 'shield-checkmark-outline'"></ion-icon>
+                      </ion-button>
+
+                      <ion-button
+                        fill="clear"
+                        size="small"
+                        class="remove-member-btn"
+                        (click)="removeMember(member)">
+                        <ion-icon name="person-remove-outline"></ion-icon>
+                      </ion-button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="empty-members">
+              <div class="empty-icon">
+                <ion-icon name="people-outline"></ion-icon>
+              </div>
+              <p class="empty-text">No members in this room</p>
+            </div>
+          }
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Room Statistics -->
+      <ion-card class="stats-card">
+        <ion-card-header>
+          <ion-card-title class="card-title">Room Statistics</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value">{{ roomMembers().length }}</div>
+              <div class="stat-label">Members</div>
+            </div>
+
+            <div class="stat-item">
+              <div class="stat-value">{{ chatRoom()!.createdAt | date:'MMM d' }}</div>
+              <div class="stat-label">Created</div>
+            </div>
+
+            <div class="stat-item">
+              <div class="stat-value">{{ chatRoom()!.lastMessageAt ? (chatRoom()!.lastMessageAt | date:'MMM d') : 'Never' }}</div>
+              <div class="stat-label">Last Message</div>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Danger Zone -->
+      @if (canManageRoom()) {
+        <ion-card class="danger-card">
+          <ion-card-header>
+            <ion-card-title class="card-title danger-title">Danger Zone</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="danger-content">
+              <div class="danger-info">
+                <h4 class="danger-action-title">Delete Chat Room</h4>
+                <p class="danger-action-description">
+                  This will permanently delete the chat room and all messages. This action cannot be undone.
+                </p>
+              </div>
+
+              <ion-button
+                fill="outline"
+                color="danger"
+                class="delete-button"
+                (click)="deleteRoom()"
+                [disabled]="isLoading()">
+                <ion-icon name="trash-outline" slot="start"></ion-icon>
+                Delete Room
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+
+    } @else {
+      <!-- Loading State -->
+      <div class="loading-state">
+        <ion-card class="loading-card">
+          <ion-card-content>
+            <div class="loading-content">
+              <div class="loading-spinner">
+                <div class="spinner"></div>
+              </div>
+              <p class="loading-text">Loading room settings...</p>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    }
+
+  </div>
+</ion-content>
