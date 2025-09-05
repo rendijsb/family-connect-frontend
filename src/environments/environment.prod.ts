@@ -11,5 +11,17 @@ export const environment = {
     key: 'family-connect-key',
     path: '',
     cluster: 'mt1',
+    encrypted: true,
+    forceTLS: true,
+    enabledTransports: ['ws', 'wss'],
+    authEndpoint: 'https://family-connect.laravel.cloud/api/broadcasting/auth',
+    csrfToken: undefined,
+    activityTimeout: 30000,
+    pongTimeout: 10000,
   },
+  websocket: {
+    retryAttempts: 5,
+    retryDelay: 1000,
+    maxRetryDelay: 10000,
+  }
 };
