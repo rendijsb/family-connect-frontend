@@ -5,10 +5,10 @@ export const environment = {
   version: '1.0.0',
   enableDebugMode: false,
   reverb: {
-    host: 'your-websocket-domain.com',
+    host: 'family-connect.laravel.cloud',
     port: 443,
     scheme: 'https',
-    key: 'your-production-key',
+    key: 'family-connect-key',
     path: '',
     cluster: 'mt1',
   },

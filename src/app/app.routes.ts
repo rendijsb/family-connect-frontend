@@ -27,17 +27,12 @@ export const routes: Routes = [
   {
     path: 'family',
     canActivate: [authGuard],
-    loadChildren: () => import('./pages/family/family.routes').then(m => m.familyRoutes)
+    loadChildren: () => import('./pages/family/family.routes').then(m => m.routes)
   },
   {
     path: 'invitations',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/invitations/pending-invitations.page').then(m => m.PendingInvitationsPage)
-  },
-  {
-    path: 'family',
-    canActivate: [authGuard],
-    loadChildren: () => import('./pages/chat/chat.routes').then(m => m.chatRoutes)
   },
   {
     path: '**',

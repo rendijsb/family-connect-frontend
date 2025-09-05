@@ -2,9 +2,10 @@ import { Routes } from '@angular/router';
 import {
   familyGuard,
   familyModeratorGuard,
+  familyAllGuard,
 } from '../../core/guards/family.guard';
 
-export const familyRoutes: Routes = [
+export const routes: Routes = [
   {
     path: 'create',
     loadComponent: () =>
@@ -30,7 +31,39 @@ export const familyRoutes: Routes = [
         (m) => m.FamilySettingsPage
       ),
   },
+  {
+    path: ':slug/chat',
+    canActivate: [familyGuard, familyAllGuard],
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('../chat/chat-list/chat-list.page').then((m) => m.ChatListPage),
+      },
+      {
+        path: 'create',
+        loadComponent: () =>
+          import('../chat/create-room/create-chat-room.page').then(
+            (m) => m.CreateChatRoomPage
+          ),
+      },
+      {
+        path: ':roomId',
+        loadComponent: () =>
+          import('../chat/chat-room/chat-room.page').then((m) => m.ChatRoomPage),
+      },
+      {
+        path: ':roomId/settings',
+        loadComponent: () =>
+          import('../chat/room-settings/room-settings.page').then(
+            (m) => m.RoomSettingsPage
+          ),
+      },
+    ],
+  },
 ];
+
+export const familyRoutes = routes;
 
 export const invitationRoutes: Routes = [
   {

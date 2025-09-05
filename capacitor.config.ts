@@ -83,6 +83,7 @@ const config: CapacitorConfig = {
       '@capacitor/haptics',
       '@capacitor/keyboard',
       '@capacitor/preferences',
+      '@capacitor/push-notifications',
       '@capacitor/splash-screen',
       '@capacitor/status-bar'
     ],

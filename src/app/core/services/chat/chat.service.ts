@@ -5,6 +5,9 @@ import { tap, finalize, map, takeUntil } from 'rxjs';
 import { ApiUrlService } from '../api.service';
 import { AuthService } from '../auth/auth.service';
 import { WebSocketService } from '../websocket/websocket.service';
+import { NotificationService } from '../notification/notification.service';
+import { Platform } from '@ionic/angular';
+import { FamilyService } from '../family/family.service';
 import {
   ChatRoom,
   ChatMessage,
@@ -37,6 +40,9 @@ export class ChatService {
   private readonly apiUrlService = inject(ApiUrlService);
   private readonly authService = inject(AuthService);
   private readonly webSocketService = inject(WebSocketService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly platform = inject(Platform);
+  private readonly familyService = inject(FamilyService);
 
   // State signals
   private readonly _chatRooms = signal<ChatRoom[]>([]);
@@ -835,6 +841,9 @@ export class ChatService {
       // Emit event for components to react
       this.messageReceived$.next(message);
 
+      // Show notification for messages from other users
+      this.showMessageNotification(message);
+
       console.log('✅ Realtime message added to list');
     } else {
       console.log('ℹ️ Message already exists, skipping duplicate');
@@ -1098,6 +1107,60 @@ export class ChatService {
       const bt = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       if (at !== bt) return at - bt;
       return (a.id || 0) - (b.id || 0);
+    });
+  }
+
+  private showMessageNotification(message: ChatMessage): void {
+    const currentUser = this.authService.user();
+    
+    // Don't show notifications for our own messages
+    if (!currentUser || message.userId === currentUser.id) {
+      return;
+    }
+
+    // Don't show notifications when app is in foreground and user is in the same chat room
+    if (document.visibilityState === 'visible' && this._currentChatRoom()?.id === message.chatRoomId) {
+      return;
+    }
+
+    const currentRoom = this._chatRooms().find(room => room.id === message.chatRoomId);
+    const senderName = message.user?.name || 'Someone';
+    const roomName = currentRoom?.name || 'Chat';
+    
+    let notificationBody = '';
+    switch (message.type) {
+      case 'text':
+        notificationBody = message.message || '';
+        break;
+      case 'image':
+        notificationBody = '📷 Sent a photo';
+        break;
+      case 'video':
+        notificationBody = '🎥 Sent a video';
+        break;
+      case 'audio':
+        notificationBody = '🎵 Sent an audio message';
+        break;
+      case 'file':
+        notificationBody = '📎 Sent a file';
+        break;
+      default:
+        notificationBody = 'Sent a message';
+    }
+
+    // Get family info for navigation data
+    const currentFamily = this.familyService.getCurrentFamily();
+    const familySlug = currentFamily?.slug || '';
+    
+    this.notificationService.showLocalNotification({
+      title: `${senderName} in ${roomName}`,
+      body: notificationBody,
+      type: 'chat',
+      data: {
+        familySlug,
+        roomId: message.chatRoomId,
+        messageId: message.id
+      }
     });
   }
 }

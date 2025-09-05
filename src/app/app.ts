@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { AuthService } from './core/services/auth/auth.service';
+import { NotificationService } from './core/services/notification/notification.service';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { Capacitor } from '@capacitor/core';
@@ -12,11 +13,16 @@ import { Capacitor } from '@capacitor/core';
   imports: [IonApp, IonRouterOutlet],
 })
 export class App implements OnInit {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private notificationService: NotificationService
+  ) {}
 
   async ngOnInit() {
     if (Capacitor.isNativePlatform()) {
       await this.initializeNativeFeatures();
+      // Initialize push notifications after native features
+      await this.notificationService.initialize();
     }
 
     await this.authService.waitForInitialization().toPromise();

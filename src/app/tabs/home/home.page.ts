@@ -2,9 +2,8 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardContent,
-  IonCardHeader, IonCardTitle, IonButton, IonIcon, IonText, IonAvatar,
-  IonRefresher, IonRefresherContent, IonFab, IonFabButton, IonButtons,
-  IonMenuButton
+  IonCardHeader, IonCardTitle, IonButton, IonIcon, IonAvatar,
+  IonRefresher, IonRefresherContent, IonFab, IonFabButton, IonButtons
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { addIcons } from 'ionicons';
@@ -23,9 +22,8 @@ import {Router} from '@angular/router';
   imports: [
     CommonModule,
     IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardContent,
-    IonCardHeader, IonCardTitle, IonButton, IonIcon, IonText, IonAvatar,
-    IonRefresher, IonRefresherContent, IonFab, IonFabButton, IonButtons,
-    IonMenuButton
+    IonCardHeader, IonCardTitle, IonButton, IonIcon, IonAvatar,
+    IonRefresher, IonRefresherContent, IonFab, IonFabButton, IonButtons
   ]
 })
 export class HomePage {

@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import {
-  IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardContent,
+  IonContent, IonHeader, IonTitle, IonToolbar,
   IonButton, IonIcon, IonButtons, IonRefresher, IonRefresherContent,
-  IonFab, IonFabButton, IonSkeletonText, IonAvatar, IonBadge
+  IonFab, IonFabButton, IonSkeletonText, IonBadge
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -33,9 +33,9 @@ import { Family } from '../../models/families/family.models';
   standalone: true,
   imports: [
     CommonModule,
-    IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardContent,
+    IonContent, IonHeader, IonTitle, IonToolbar,
     IonButton, IonIcon, IonButtons, IonRefresher, IonRefresherContent,
-    IonFab, IonFabButton, IonSkeletonText, IonAvatar, IonBadge
+    IonFab, IonFabButton, IonSkeletonText, IonBadge
   ]
 })
 export class ChatTabPage implements OnInit, OnDestroy {
