@@ -106,7 +106,7 @@ export interface SendMessageRequest {
   message: string;
   type: MessageTypeEnum;
   replyToId?: number;
-  attachments?: File[];
+  attachments?: any;
   metadata?: any;
 }
 

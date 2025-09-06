@@ -7,7 +7,7 @@ import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonButton, IonButtons,
   IonIcon, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonAvatar,
   IonSegment, IonSegmentButton, IonLabel, IonRefresher, IonRefresherContent,
-  IonFab, IonFabButton, IonFabList, IonSkeletonText
+  IonFab, IonFabButton, IonFabList, IonSkeletonText, IonSpinner
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -55,7 +55,7 @@ interface FamilyActivity {
     IonContent, IonHeader, IonTitle, IonToolbar, IonButton, IonButtons,
     IonIcon, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonAvatar,
     IonSegment, IonSegmentButton, IonLabel, IonRefresher, IonRefresherContent,
-    IonFab, IonFabButton, IonFabList, IonSkeletonText
+    IonFab, IonFabButton, IonFabList, IonSkeletonText, IonSpinner
   ]
 })
 export class FamilyDetailPage implements OnInit, OnDestroy {
@@ -73,6 +73,8 @@ export class FamilyDetailPage implements OnInit, OnDestroy {
   readonly selectedSegment = signal<string>('overview');
   readonly isLoading = signal<boolean>(false);
   readonly familySlug = signal<string>('');
+  readonly joinCode = signal<string | null>(null);
+  readonly isJoinCodeLoading = signal<boolean>(false);
 
   // Mock data - in real app this would come from API
   readonly recentActivities: FamilyActivity[] = [
@@ -152,6 +154,7 @@ export class FamilyDetailPage implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.family.set(response.data);
+          this.joinCode.set(response.data.joinCode || null);
         },
         error: async (error) => {
           console.error('Load family error:', error);
@@ -186,6 +189,7 @@ export class FamilyDetailPage implements OnInit, OnDestroy {
         .subscribe({
           next: (response) => {
             this.family.set(response.data);
+            this.joinCode.set(response.data.joinCode || null);
             event.target.complete();
           },
           error: () => {
@@ -339,10 +343,10 @@ export class FamilyDetailPage implements OnInit, OnDestroy {
 
   // Join Code Actions
   async copyJoinCode() {
-    const family = this.family();
-    if (family?.joinCode) {
+    const joinCode = this.joinCode();
+    if (joinCode) {
       await this.toastService.copyToClipboard(
-        family.joinCode,
+        joinCode,
         'Join code copied to clipboard!'
       );
     }
@@ -350,13 +354,14 @@ export class FamilyDetailPage implements OnInit, OnDestroy {
 
   async shareJoinCode() {
     const family = this.family();
-    if (family?.joinCode) {
+    const joinCode = this.joinCode();
+    if (family && joinCode) {
       await this.toastService.shareWithFallback(
         {
           title: `Join ${family.name}`,
-          text: `You're invited to join the "${family.name}" family on Family Connect! Use join code: ${family.joinCode}`,
+          text: `You're invited to join the "${family.name}" family on Family Connect! Use join code: ${joinCode}`,
         },
-        family.joinCode,
+        joinCode,
         'Join code copied to clipboard!'
       );
     }
@@ -366,40 +371,62 @@ export class FamilyDetailPage implements OnInit, OnDestroy {
     const family = this.family();
     if (!family) return;
 
+    const hasExistingCode = this.hasJoinCode();
+    const confirmTitle = hasExistingCode ? 'Generate New Join Code' : 'Generate Join Code';
+    const confirmMessage = hasExistingCode 
+      ? 'This will invalidate the current join code. Are you sure?' 
+      : 'Generate a join code for this family?';
+
     const confirmed = await this.toastService.showConfirmation(
-      'Generate New Join Code',
-      'This will invalidate the current join code. Are you sure?',
+      confirmTitle,
+      confirmMessage,
       'Generate',
       'Cancel'
     );
 
     if (confirmed) {
-      const loading = await this.toastService.showLoading(
-        'Generating new join code...'
-      );
+      this.isJoinCodeLoading.set(true);
 
       this.familyService
         .generateJoinCode(family.slug)
         .pipe(
-          finalize(() => loading.dismiss()),
+          finalize(() => this.isJoinCodeLoading.set(false)),
           takeUntil(this.destroy$)
         )
         .subscribe({
-          next: async () => {
-            await this.toastService.showToast(
-              'New join code generated successfully!',
-              'success'
-            );
+          next: async (response) => {
+            // Update the local signal immediately
+            this.joinCode.set(response.data.joinCode);
+            
+            // Also update the family object to keep them in sync
+            const updatedFamily = { ...family, joinCode: response.data.joinCode };
+            this.family.set(updatedFamily);
+            
+            const successMessage = hasExistingCode 
+              ? 'New join code generated successfully!' 
+              : 'Join code generated successfully!';
+              
+            await this.toastService.showToast(successMessage, 'success');
           },
           error: async (error) => {
             console.error('Generate join code error:', error);
             await this.toastService.showToast(
-              'Failed to generate new join code.',
+              'Failed to generate join code.',
               'danger'
             );
           },
         });
     }
+  }
+
+  // Helper method to check if join code is available
+  hasJoinCode(): boolean {
+    return !!this.joinCode();
+  }
+
+  // Helper method to check if join code is being processed
+  isJoinCodeReady(): boolean {
+    return !this.isJoinCodeLoading() && this.hasJoinCode();
   }
 
   // Action Sheets

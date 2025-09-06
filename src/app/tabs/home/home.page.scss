@@ -164,6 +164,20 @@ ion-card-content {
     transform: scale(0.95);
     background: rgba(255, 255, 255, 0.05);
   }
+
+  &.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+
+    .action-icon {
+      opacity: 0.5;
+    }
+
+    .action-title {
+      color: #71717a;
+    }
+  }
 }
 
 .action-icon {

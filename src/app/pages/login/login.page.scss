@@ -279,6 +279,20 @@
   box-shadow: 0 4px 15px rgba(24, 119, 242, 0.2);
 }
 
+.social-button[disabled] {
+  opacity: 0.4;
+  --background: rgba(55, 55, 55, 0.3);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --color: #71717a;
+  cursor: not-allowed;
+  pointer-events: none;
+
+  &:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
 /* Sign Up Section */
 .signup-section {
   text-align: center;

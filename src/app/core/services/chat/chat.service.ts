@@ -692,11 +692,6 @@ export class ChatService {
       this.leaveChatRoom();
     }
 
-    if (!this.webSocketService.isWebSocketConnected()) {
-      console.error('❌ WebSocket not connected, cannot join chat room');
-      return;
-    }
-
     try {
       // Join new room channel
       const channelName = `chat-room.${roomId}`;
@@ -1112,7 +1107,7 @@ export class ChatService {
 
   private showMessageNotification(message: ChatMessage): void {
     const currentUser = this.authService.user();
-    
+
     // Don't show notifications for our own messages
     if (!currentUser || message.userId === currentUser.id) {
       return;
@@ -1126,7 +1121,7 @@ export class ChatService {
     const currentRoom = this._chatRooms().find(room => room.id === message.chatRoomId);
     const senderName = message.user?.name || 'Someone';
     const roomName = currentRoom?.name || 'Chat';
-    
+
     let notificationBody = '';
     switch (message.type) {
       case 'text':
@@ -1151,7 +1146,7 @@ export class ChatService {
     // Get family info for navigation data
     const currentFamily = this.familyService.getCurrentFamily();
     const familySlug = currentFamily?.slug || '';
-    
+
     this.notificationService.showLocalNotification({
       title: `${senderName} in ${roomName}`,
       body: notificationBody,

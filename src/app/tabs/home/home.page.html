@@ -8,7 +8,7 @@
     </ion-title>
 
     <ion-buttons slot="end">
-      <ion-button class="notification-button">
+      <ion-button class="notification-button" [disabled]="true">
         <ion-icon name="notifications-outline"></ion-icon>
       </ion-button>
 
@@ -62,28 +62,28 @@
             <span class="action-title">Chat</span>
           </div>
 
-          <div class="action-item">
+          <div class="action-item disabled">
             <div class="action-icon photos">
               <ion-icon name="camera-outline"></ion-icon>
             </div>
             <span class="action-title">Photos</span>
           </div>
 
-          <div class="action-item">
+          <div class="action-item disabled">
             <div class="action-icon events">
               <ion-icon name="calendar-outline"></ion-icon>
             </div>
             <span class="action-title">Events</span>
           </div>
 
-          <div class="action-item">
+          <div class="action-item disabled">
             <div class="action-icon location">
               <ion-icon name="location-outline"></ion-icon>
             </div>
             <span class="action-title">Location</span>
           </div>
 
-          <div class="action-item">
+          <div class="action-item disabled">
             <div class="action-icon memories">
               <ion-icon name="heart-outline"></ion-icon>
             </div>
@@ -114,7 +114,7 @@
     <!-- Account Actions -->
     <ion-card class="account-card">
       <ion-card-content class="account-content">
-        <ion-button expand="block" fill="outline" class="account-button">
+        <ion-button expand="block" fill="outline" class="account-button" [disabled]="true">
           <ion-icon name="settings-outline" slot="start"></ion-icon>
           Settings
         </ion-button>
@@ -130,7 +130,7 @@
 
   <!-- Floating Action Button -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button class="fab-button">
+    <ion-fab-button class="fab-button" [disabled]="true">
       <ion-icon name="add-outline"></ion-icon>
     </ion-fab-button>
   </ion-fab>
