@@ -10,7 +10,6 @@ declare global {
   }
 }
 
-// Singleton pattern for libraries
 let Echo: any = null;
 let Pusher: any = null;
 
@@ -28,25 +27,21 @@ export enum ConnectionState {
 export class WebSocketService implements OnDestroy {
   private readonly authService = inject(AuthService);
 
-  // Core properties
   private echo: any = null;
   private channels = new Map<string, any>();
   private connectionTimeout: any;
   private reconnectTimeout: any;
 
-  // Connection state management
   private connectionStateSubject = new BehaviorSubject<ConnectionState>(
     ConnectionState.DISCONNECTED
   );
   public connectionState$ = this.connectionStateSubject.asObservable();
 
-  // Reconnection config
   private reconnectAttempts = 0;
   private readonly maxReconnectAttempts = 5;
   private readonly baseReconnectDelay = 1000;
   private readonly maxReconnectDelay = 30000;
 
-  // Performance tracking
   private connectionStartTime: number = 0;
   private lastSuccessfulConnection: Date | null = null;
 
@@ -62,6 +57,8 @@ export class WebSocketService implements OnDestroy {
     if (Echo && Pusher) return;
 
     try {
+      console.log('📦 Loading WebSocket libraries...');
+
       const [echoModule, pusherModule] = await Promise.all([
         import('laravel-echo'),
         import('pusher-js'),
@@ -71,34 +68,33 @@ export class WebSocketService implements OnDestroy {
       Pusher = pusherModule.default;
       window.Pusher = Pusher;
 
-      console.log('✅ WebSocket libraries loaded');
+      console.log('✅ WebSocket libraries loaded successfully');
     } catch (error) {
       console.error('❌ Failed to load WebSocket libraries:', error);
       this.connectionStateSubject.next(ConnectionState.FAILED);
+      throw error;
     }
   }
 
   async connect(): Promise<void> {
-    // Prevent multiple simultaneous connections
     if (this.connectionState === ConnectionState.CONNECTING ||
       this.connectionState === ConnectionState.CONNECTED) {
       console.log('🔌 Connection already in progress or established');
       return;
     }
 
-    // Check authentication
     if (!this.authService.isAuthenticated()) {
       console.warn('⚠️ User not authenticated');
-      return;
+      throw new Error('User not authenticated');
     }
 
     const token = this.authService.getToken();
     if (!token) {
       console.error('❌ No auth token available');
-      return;
+      throw new Error('No auth token available');
     }
 
-    // Start connection process
+    console.log('🚀 Starting Pusher connection...');
     this.connectionStateSubject.next(ConnectionState.CONNECTING);
     this.connectionStartTime = Date.now();
 
@@ -109,41 +105,82 @@ export class WebSocketService implements OnDestroy {
         throw new Error('WebSocket libraries not available');
       }
 
-      // Create optimized Echo instance
+      console.log('🔧 Creating Echo instance with Pusher config:', {
+        broadcaster: 'pusher',
+        key: environment.pusher.key,
+        cluster: environment.pusher.cluster,
+        forceTLS: true,
+        encrypted: true,
+        authEndpoint: environment.pusher.authEndpoint,
+      });
+
+      // Clean Pusher configuration
       this.echo = new Echo({
         broadcaster: 'pusher',
-        key: environment.reverb.key,
-        cluster: environment.reverb.cluster,
-        wsHost: environment.reverb.wsHost,
-        wsPort: environment.reverb.wsPort,
-        wssPort: environment.reverb.wssPort,
+        key: environment.pusher.key,
+        cluster: environment.pusher.cluster,
         forceTLS: true,
         encrypted: true,
         disableStats: true,
-        enabledTransports: ['wss'],
 
-        // Simplified auth config - let Laravel Echo handle the details
-        authEndpoint: environment.reverb.authEndpoint,
+        // Auth configuration for private channels
+        authEndpoint: environment.pusher.authEndpoint,
         auth: {
           headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
             'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
           },
         },
 
-        // Pusher-specific optimizations
-        activityTimeout: 120000,
-        pongTimeout: 30000,
-        unavailableTimeout: 10000,
+        // Custom authorizer for proper data format
+        authorizer: (channel: any, options: any) => {
+          return {
+            authorize: (socketId: string, callback: any) => {
+              console.log('🔐 Authorizing channel:', channel.name, 'Socket:', socketId);
+
+              fetch(environment.pusher.authEndpoint, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json',
+                  'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                  socket_id: socketId,
+                  channel_name: channel.name
+                })
+              })
+                .then(response => {
+                  console.log('🔐 Auth response status:', response.status);
+                  if (!response.ok) {
+                    throw new Error(`Auth failed: ${response.status}`);
+                  }
+                  return response.json();
+                })
+                .then(data => {
+                  console.log('✅ Channel auth successful:', data);
+                  callback(null, data);
+                })
+                .catch(error => {
+                  console.error('❌ Channel auth failed:', error);
+                  callback(error, null);
+                });
+            }
+          };
+        },
       });
 
+      console.log('🔗 Echo instance created, setting up connection handlers...');
       this.setupConnectionHandlers();
       this.startConnectionTimeout();
 
     } catch (error) {
       console.error('❌ Connection initialization failed:', error);
       this.handleConnectionFailure();
+      throw error;
     }
   }
 
@@ -154,11 +191,13 @@ export class WebSocketService implements OnDestroy {
     }
 
     const pusher = this.echo.connector.pusher;
+    console.log('🔧 Setting up Pusher event handlers...');
 
     // Connection established
     pusher.connection.bind('connected', () => {
       const connectionTime = Date.now() - this.connectionStartTime;
-      console.log(`🎉 Connected in ${connectionTime}ms`);
+      console.log(`🎉 Pusher connected successfully in ${connectionTime}ms`);
+      console.log('🔗 Socket ID:', pusher.connection.socket_id);
 
       this.connectionStateSubject.next(ConnectionState.CONNECTED);
       this.lastSuccessfulConnection = new Date();
@@ -168,16 +207,20 @@ export class WebSocketService implements OnDestroy {
 
     // Connection lost
     pusher.connection.bind('disconnected', () => {
-      console.log('💔 Connection lost');
+      console.log('💔 Pusher connection lost');
       this.connectionStateSubject.next(ConnectionState.DISCONNECTED);
       this.scheduleReconnect();
     });
 
     // Connection errors
     pusher.connection.bind('error', (error: any) => {
-      console.error('❌ Connection error:', error);
+      console.error('❌ Pusher connection error:', error);
 
-      // Check for unrecoverable errors
+      if (error?.error?.data?.code) {
+        console.error('❌ Error code:', error.error.data.code);
+        console.error('❌ Error message:', error.error.data.message);
+      }
+
       if (this.isUnrecoverableError(error)) {
         console.error('❌ Unrecoverable error detected');
         this.connectionStateSubject.next(ConnectionState.FAILED);
@@ -187,9 +230,18 @@ export class WebSocketService implements OnDestroy {
       this.handleConnectionFailure();
     });
 
-    // State changes for debugging
+    // State changes
     pusher.connection.bind('state_change', (states: any) => {
-      console.log(`🔄 ${states.previous} → ${states.current}`);
+      console.log(`🔄 Pusher state: ${states.previous} → ${states.current}`);
+    });
+
+    // Auth success/failure for private channels
+    pusher.connection.bind('pusher:signin_success', (data: any) => {
+      console.log('✅ Private channel authentication successful:', data);
+    });
+
+    pusher.connection.bind('pusher:error', (error: any) => {
+      console.error('❌ Pusher error:', error);
     });
   }
 
@@ -204,10 +256,10 @@ export class WebSocketService implements OnDestroy {
 
     this.connectionTimeout = setTimeout(() => {
       if (this.connectionState !== ConnectionState.CONNECTED) {
-        console.error('❌ Connection timeout');
+        console.error('❌ Connection timeout after 15 seconds');
         this.handleConnectionFailure();
       }
-    }, 15000);
+    }, 15000); // Reduced timeout for Pusher
   }
 
   private handleConnectionFailure(): void {
@@ -246,12 +298,14 @@ export class WebSocketService implements OnDestroy {
     this.connectionStateSubject.next(ConnectionState.RECONNECTING);
 
     this.reconnectTimeout = setTimeout(() => {
-      this.connect();
+      this.connect().catch(error => {
+        console.error('❌ Reconnection failed:', error);
+      });
     }, delay);
   }
 
   disconnect(): void {
-    console.log('🔌 Disconnecting WebSocket');
+    console.log('🔌 Disconnecting Pusher');
 
     this.clearTimeouts();
     this.clearChannels();
@@ -269,25 +323,41 @@ export class WebSocketService implements OnDestroy {
     this.reconnectAttempts = 0;
   }
 
-  // Optimized channel management
   joinPrivateChannel(channelName: string): any {
     if (!this.isConnected) {
-      throw new Error('WebSocket not connected');
+      console.error('❌ Cannot join channel - Pusher not connected');
+      throw new Error('Pusher not connected');
     }
 
-    // Return existing channel if already joined
     if (this.channels.has(channelName)) {
       console.log(`📢 Returning existing channel: ${channelName}`);
       return this.channels.get(channelName);
     }
 
     try {
+      console.log(`📢 Joining private channel: ${channelName}`);
+
       const channel = this.echo.private(channelName);
       this.channels.set(channelName, channel);
 
-      console.log(`📢 Joined private channel: ${channelName}`);
+      // Try to add global event listener for debugging (if available)
+      try {
+        if (typeof channel.bind_global === 'function') {
+          channel.bind_global((eventName: string, data: any) => {
+            console.log('🎉 RAW EVENT RECEIVED:', eventName, data);
+          });
+        } else {
+          console.log('📋 bind_global not available, using specific event listeners');
+        }
+      } catch (error) {
+        console.log('📋 Could not set up global listener:', error);
+      }
 
-      // Auto-cleanup on errors
+      // Setup channel event handlers
+      channel.subscribed(() => {
+        console.log(`✅ Successfully subscribed to channel: ${channelName}`);
+      });
+
       channel.error((error: any) => {
         console.error(`❌ Channel error for ${channelName}:`, error);
         this.channels.delete(channelName);
@@ -306,37 +376,14 @@ export class WebSocketService implements OnDestroy {
     }
 
     try {
+      console.log(`📢 Leaving channel: ${channelName}`);
       this.echo.leave(channelName);
       this.channels.delete(channelName);
-      console.log(`📢 Left channel: ${channelName}`);
     } catch (error) {
       console.error(`❌ Error leaving channel ${channelName}:`, error);
     }
   }
 
-  joinPresenceChannel(channelName: string): any {
-    if (!this.isConnected) {
-      throw new Error('WebSocket not connected');
-    }
-
-    if (this.channels.has(channelName)) {
-      return this.channels.get(channelName);
-    }
-
-    try {
-      const channel = this.echo.join(channelName);
-      this.channels.set(channelName, channel);
-
-      console.log(`📢 Joined presence channel: ${channelName}`);
-
-      return channel;
-    } catch (error) {
-      console.error(`❌ Failed to join presence channel ${channelName}:`, error);
-      throw error;
-    }
-  }
-
-  // Utility methods
   private clearTimeouts(): void {
     if (this.connectionTimeout) {
       clearTimeout(this.connectionTimeout);
@@ -350,6 +397,7 @@ export class WebSocketService implements OnDestroy {
   }
 
   private clearChannels(): void {
+    console.log(`🧹 Clearing ${this.channels.size} channels...`);
     this.channels.forEach((_, channelName) => {
       this.leaveChannel(channelName);
     });
@@ -385,6 +433,7 @@ export class WebSocketService implements OnDestroy {
     reconnectAttempts: number;
     lastConnection: Date | null;
     activeChannels: number;
+    socketId?: string;
   } {
     return {
       state: this.connectionState,
@@ -392,14 +441,57 @@ export class WebSocketService implements OnDestroy {
       reconnectAttempts: this.reconnectAttempts,
       lastConnection: this.lastSuccessfulConnection,
       activeChannels: this.activeChannelCount,
+      socketId: this.echo?.connector?.pusher?.connection?.socket_id,
     };
   }
 
-  // Force reconnect with reset
   forceReconnect(): void {
     console.log('🔄 Force reconnecting...');
     this.reconnectAttempts = 0;
     this.disconnect();
     setTimeout(() => this.connect(), 500);
+  }
+
+  // Debug method to test authentication manually
+  async testAuthentication(): Promise<boolean> {
+    const token = this.authService.getToken();
+    if (!token) return false;
+
+    try {
+      console.log('🔐 Testing authentication manually...');
+
+      const response = await fetch(environment.pusher.authEndpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({
+          socket_id: 'test-socket-id',
+          channel_name: 'private-test-channel'
+        })
+      });
+
+      console.log('🔐 Manual auth test response:', {
+        status: response.status,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('🔐 Auth response data:', data);
+        return true;
+      } else {
+        const errorText = await response.text();
+        console.error('🔐 Auth failed:', errorText);
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Auth test error:', error);
+      return false;
+    }
   }
 }

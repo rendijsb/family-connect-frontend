@@ -432,240 +432,6 @@ export class ChatService {
     );
   }
 
-  // WebSocket methods moved to dedicated section below
-
-  private handleWebSocketMessage(data: any) {
-    switch (data.type) {
-      case 'message_received':
-        this.handleNewMessage(data.message);
-        break;
-      case 'message_updated':
-        this.handleMessageUpdate(data.message);
-        break;
-      case 'message_deleted':
-        this.handleMessageDeletion(data.messageId);
-        break;
-      case 'typing_started':
-        this.handleTypingStarted(data.roomId, data.user);
-        break;
-      case 'typing_ended':
-        this.handleTypingEnded(data.roomId, data.userId);
-        break;
-      case 'room_updated':
-        this.handleRoomUpdate(data.room);
-        break;
-    }
-  }
-
-  private handleNewMessage(message: ChatMessage) {
-    this.addMessageToList(message);
-    this.updateLastMessage(message.chatRoomId, message);
-  }
-
-  private handleMessageUpdate(message: ChatMessage) {
-    this.updateMessageInList(message);
-  }
-
-  private handleMessageDeletion(messageId: number) {
-    this.markMessageAsDeleted(messageId);
-  }
-
-  private handleTypingStarted(roomId: number, user: any) {
-    if (this._currentChatRoom()?.id === roomId) {
-      const currentUsers = this._typingUsers();
-      if (!currentUsers.find((u) => u.userId === user.id)) {
-        this._typingUsers.set([
-          ...currentUsers,
-          {
-            userId: user.id,
-            userName: user.name,
-            lastTyping: Date.now(),
-          },
-        ]);
-      }
-    }
-  }
-
-  private handleTypingEnded(roomId: number, userId: number) {
-    if (this._currentChatRoom()?.id === roomId) {
-      const currentUsers = this._typingUsers();
-      this._typingUsers.set(currentUsers.filter((u) => u.userId !== userId));
-    }
-  }
-
-  private handleRoomUpdate(room: ChatRoom) {
-    this.updateChatRoomInList(room);
-    if (this._currentChatRoom()?.id === room.id) {
-      this._currentChatRoom.set(room);
-    }
-  }
-
-  // Helper methods
-  private addMessageToList(message: ChatMessage) {
-    const currentMessages = this._messages();
-    this._messages.set([...currentMessages, message]);
-  }
-
-  private updateMessageInList(updatedMessage: ChatMessage) {
-    const currentMessages = this._messages();
-    const index = currentMessages.findIndex((m) => m.id === updatedMessage.id);
-    if (index !== -1) {
-      const newMessages = [...currentMessages];
-      newMessages[index] = updatedMessage;
-      this._messages.set(newMessages);
-    }
-  }
-
-  private replaceOptimisticMessage(
-    optimisticId: number,
-    realMessage: ChatMessage
-  ) {
-    const currentMessages = this._messages();
-    const index = currentMessages.findIndex((m) => m.id === optimisticId);
-    if (index !== -1) {
-      const newMessages = [...currentMessages];
-      newMessages[index] = realMessage;
-      this._messages.set(newMessages);
-    }
-  }
-
-  private updateMessageSendingState(
-    messageId: number,
-    isSending: boolean,
-    error?: string
-  ) {
-    const currentMessages = this._messages();
-    const index = currentMessages.findIndex((m) => m.id === messageId);
-    if (index !== -1) {
-      const newMessages = [...currentMessages];
-      newMessages[index] = {
-        ...newMessages[index],
-        isSending,
-        sendError: error,
-      };
-      this._messages.set(newMessages);
-    }
-  }
-
-  private markMessageAsDeleted(messageId: number) {
-    const currentMessages = this._messages();
-    const index = currentMessages.findIndex((m) => m.id === messageId);
-    if (index !== -1) {
-      const newMessages = [...currentMessages];
-      newMessages[index] = {
-        ...newMessages[index],
-        isDeleted: true,
-        message: 'This message was deleted',
-      };
-      this._messages.set(newMessages);
-    }
-  }
-
-  private addReactionToMessage(messageId: number, reaction: MessageReaction) {
-    const currentMessages = this._messages();
-    const index = currentMessages.findIndex((m) => m.id === messageId);
-    if (index !== -1) {
-      const newMessages = [...currentMessages];
-      if (!newMessages[index].reactions) {
-        newMessages[index].reactions = [];
-      }
-      newMessages[index].reactions!.push(reaction);
-      this._messages.set(newMessages);
-    }
-  }
-
-  private removeReactionFromMessage(
-    messageId: number,
-    emoji: string,
-    userId: number
-  ) {
-    const currentMessages = this._messages();
-    const index = currentMessages.findIndex((m) => m.id === messageId);
-    if (index !== -1) {
-      const newMessages = [...currentMessages];
-      if (newMessages[index].reactions) {
-        newMessages[index].reactions = newMessages[index].reactions!.filter(
-          (r) => !(r.emoji === emoji && r.userId === userId)
-        );
-      }
-      this._messages.set(newMessages);
-    }
-  }
-
-  private updateChatRoomInList(updatedRoom: ChatRoom) {
-    const currentRooms = this._chatRooms();
-    const index = currentRooms.findIndex((r) => r.id === updatedRoom.id);
-    if (index !== -1) {
-      const newRooms = [...currentRooms];
-      newRooms[index] = updatedRoom;
-      this._chatRooms.set(newRooms);
-    }
-  }
-
-  private updateLastMessage(roomId: number, message: ChatMessage) {
-    const currentRooms = this._chatRooms();
-    const index = currentRooms.findIndex((r) => r.id === roomId);
-    if (index !== -1) {
-      const newRooms = [...currentRooms];
-      newRooms[index] = {
-        ...newRooms[index],
-        lastMessage: message,
-        lastMessageAt: message.createdAt,
-      };
-      // Move to top of list if it's a new message
-      if (!message.isOptimistic) {
-        const [updatedRoom] = newRooms.splice(index, 1);
-        newRooms.unshift(updatedRoom);
-      }
-      this._chatRooms.set(newRooms);
-    }
-  }
-
-  private markRoomAsRead(roomId: number) {
-    const currentRooms = this._chatRooms();
-    const index = currentRooms.findIndex((r) => r.id === roomId);
-    if (index !== -1) {
-      const newRooms = [...currentRooms];
-      newRooms[index] = {
-        ...newRooms[index],
-        unreadCount: 0,
-      };
-      this._chatRooms.set(newRooms);
-    }
-  }
-
-  private startTypingCleanup() {
-    // Clean up typing indicators every 3 seconds
-    interval(3000)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        const now = Date.now();
-        const currentUsers = this._typingUsers();
-        const activeUsers = currentUsers.filter(
-          (user) => now - user.lastTyping < 5000 // 5 seconds timeout
-        );
-
-        if (activeUsers.length !== currentUsers.length) {
-          this._typingUsers.set(activeUsers);
-        }
-      });
-  }
-
-  // Public utility methods
-  clearCurrentRoom() {
-    this._currentChatRoom.set(null);
-    this._messages.set([]);
-    this._typingUsers.set([]);
-  }
-
-  getCurrentMessages(): ChatMessage[] {
-    return this._messages();
-  }
-
-  getCurrentChatRooms(): ChatRoom[] {
-    return this._chatRooms();
-  }
-
   // WebSocket Real-time Methods
   async initializeWebSocket(): Promise<void> {
     if (!this.authService.isAuthenticated()) {
@@ -712,20 +478,46 @@ export class ChatService {
   }
 
   private setupChannelListeners(channel: any, roomId: number): void {
-    // Listen for new messages
-    channel.listen('.message.sent', (event: any) => {
-      console.log('📨 REAL-TIME MESSAGE RECEIVED:', event);
+    console.log('📡 Setting up channel listeners for room:', roomId);
 
-      const newMessage = event.message;
-      if (newMessage && newMessage.chatRoomId === roomId) {
-        this.handleRealtimeMessage(newMessage);
+    // DEBUG: Listen for ALL possible event variations
+    console.log('🔍 Setting up debug listeners...');
+
+    // Try multiple event name variations
+    const eventVariations = [
+      'message.sent',           // With dot prefix
+      '.message.sent',          // With leading dot
+      'MessageSent',            // Class name
+      'App\\Events\\Chat\\MessageSent', // Full class name
+      'message_sent',           // Snake case
+      'messageSent'             // Camel case
+    ];
+
+    eventVariations.forEach(eventName => {
+      channel.listen(eventName, (event: any) => {
+        console.log(`🎉 EVENT RECEIVED [${eventName}]:`, event);
+
+        // Handle the message regardless of event name format
+        if (event.message || event.data?.message) {
+          const message = event.message || event.data.message;
+          if (message && message.chatRoomId === roomId) {
+            this.handleRealtimeMessage(message);
+          }
+        }
+      });
+    });
+
+    // Also try listening for Laravel's default event structure
+    channel.listen('App.Events.Chat.MessageSent', (event: any) => {
+      console.log('🎉 Laravel Event Structure:', event);
+      if (event.message) {
+        this.handleRealtimeMessage(event.message);
       }
     });
 
     // Listen for message updates
     channel.listen('.message.updated', (event: any) => {
       console.log('📝 REAL-TIME MESSAGE UPDATED:', event);
-
       const updatedMessage = event.message;
       if (updatedMessage) {
         this.handleRealtimeMessageUpdate(updatedMessage);
@@ -735,7 +527,6 @@ export class ChatService {
     // Listen for message deletions
     channel.listen('.message.deleted', (event: any) => {
       console.log('🗑️ REAL-TIME MESSAGE DELETED:', event);
-
       if (event.messageId && event.chatRoomId === roomId) {
         this.handleRealtimeMessageDeletion(event.messageId);
       }
@@ -744,7 +535,6 @@ export class ChatService {
     // Listen for reactions
     channel.listen('.reaction.added', (event: any) => {
       console.log('❤️ REAL-TIME REACTION ADDED:', event);
-
       if (event.reaction && event.messageId) {
         this.handleRealtimeReactionAdded(event.messageId, event.reaction);
       }
@@ -752,7 +542,6 @@ export class ChatService {
 
     channel.listen('.reaction.removed', (event: any) => {
       console.log('💔 REAL-TIME REACTION REMOVED:', event);
-
       if (event.messageId && event.emoji && event.userId) {
         this.handleRealtimeReactionRemoved(
           event.messageId,
@@ -765,7 +554,6 @@ export class ChatService {
     // Listen for typing indicators
     channel.listen('.user.typing', (event: any) => {
       console.log('⌨️ USER TYPING:', event);
-
       if (event.userId && event.userName && event.isTyping !== undefined) {
         this.handleTypingEvent(
           roomId,
@@ -1093,6 +881,172 @@ export class ChatService {
 
   getRoomUpdatedStream(): Observable<ChatRoom> {
     return this.roomUpdated$.asObservable();
+  }
+
+  // Helper methods
+  private addMessageToList(message: ChatMessage) {
+    const currentMessages = this._messages();
+    this._messages.set([...currentMessages, message]);
+  }
+
+  private updateMessageInList(updatedMessage: ChatMessage) {
+    const currentMessages = this._messages();
+    const index = currentMessages.findIndex((m) => m.id === updatedMessage.id);
+    if (index !== -1) {
+      const newMessages = [...currentMessages];
+      newMessages[index] = updatedMessage;
+      this._messages.set(newMessages);
+    }
+  }
+
+  private replaceOptimisticMessage(
+    optimisticId: number,
+    realMessage: ChatMessage
+  ) {
+    const currentMessages = this._messages();
+    const index = currentMessages.findIndex((m) => m.id === optimisticId);
+    if (index !== -1) {
+      const newMessages = [...currentMessages];
+      newMessages[index] = realMessage;
+      this._messages.set(newMessages);
+    }
+  }
+
+  private updateMessageSendingState(
+    messageId: number,
+    isSending: boolean,
+    error?: string
+  ) {
+    const currentMessages = this._messages();
+    const index = currentMessages.findIndex((m) => m.id === messageId);
+    if (index !== -1) {
+      const newMessages = [...currentMessages];
+      newMessages[index] = {
+        ...newMessages[index],
+        isSending,
+        sendError: error,
+      };
+      this._messages.set(newMessages);
+    }
+  }
+
+  private markMessageAsDeleted(messageId: number) {
+    const currentMessages = this._messages();
+    const index = currentMessages.findIndex((m) => m.id === messageId);
+    if (index !== -1) {
+      const newMessages = [...currentMessages];
+      newMessages[index] = {
+        ...newMessages[index],
+        isDeleted: true,
+        message: 'This message was deleted',
+      };
+      this._messages.set(newMessages);
+    }
+  }
+
+  private addReactionToMessage(messageId: number, reaction: MessageReaction) {
+    const currentMessages = this._messages();
+    const index = currentMessages.findIndex((m) => m.id === messageId);
+    if (index !== -1) {
+      const newMessages = [...currentMessages];
+      if (!newMessages[index].reactions) {
+        newMessages[index].reactions = [];
+      }
+      newMessages[index].reactions!.push(reaction);
+      this._messages.set(newMessages);
+    }
+  }
+
+  private removeReactionFromMessage(
+    messageId: number,
+    emoji: string,
+    userId: number
+  ) {
+    const currentMessages = this._messages();
+    const index = currentMessages.findIndex((m) => m.id === messageId);
+    if (index !== -1) {
+      const newMessages = [...currentMessages];
+      if (newMessages[index].reactions) {
+        newMessages[index].reactions = newMessages[index].reactions!.filter(
+          (r) => !(r.emoji === emoji && r.userId === userId)
+        );
+      }
+      this._messages.set(newMessages);
+    }
+  }
+
+  private updateChatRoomInList(updatedRoom: ChatRoom) {
+    const currentRooms = this._chatRooms();
+    const index = currentRooms.findIndex((r) => r.id === updatedRoom.id);
+    if (index !== -1) {
+      const newRooms = [...currentRooms];
+      newRooms[index] = updatedRoom;
+      this._chatRooms.set(newRooms);
+    }
+  }
+
+  private updateLastMessage(roomId: number, message: ChatMessage) {
+    const currentRooms = this._chatRooms();
+    const index = currentRooms.findIndex((r) => r.id === roomId);
+    if (index !== -1) {
+      const newRooms = [...currentRooms];
+      newRooms[index] = {
+        ...newRooms[index],
+        lastMessage: message,
+        lastMessageAt: message.createdAt,
+      };
+      // Move to top of list if it's a new message
+      if (!message.isOptimistic) {
+        const [updatedRoom] = newRooms.splice(index, 1);
+        newRooms.unshift(updatedRoom);
+      }
+      this._chatRooms.set(newRooms);
+    }
+  }
+
+  private markRoomAsRead(roomId: number) {
+    const currentRooms = this._chatRooms();
+    const index = currentRooms.findIndex((r) => r.id === roomId);
+    if (index !== -1) {
+      const newRooms = [...currentRooms];
+      newRooms[index] = {
+        ...newRooms[index],
+        unreadCount: 0,
+      };
+      this._chatRooms.set(newRooms);
+    }
+  }
+
+  private startTypingCleanup() {
+    // Clean up typing indicators every 3 seconds
+    interval(3000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        const now = Date.now();
+        const currentUsers = this._typingUsers();
+        const activeUsers = currentUsers.filter(
+          (user) => now - user.lastTyping < 5000 // 5 seconds timeout
+        );
+
+        if (activeUsers.length !== currentUsers.length) {
+          this._typingUsers.set(activeUsers);
+        }
+      });
+  }
+
+  // Public utility methods
+  clearCurrentRoom() {
+    this._currentChatRoom.set(null);
+    this._messages.set([]);
+    this._typingUsers.set([]);
+  }
+
+  getCurrentMessages(): ChatMessage[] {
+    return this._messages();
+  }
+
+  getCurrentChatRooms(): ChatRoom[] {
+    return this._chatRooms();
   }
 
   // Ensure messages remain in chronological order by createdAt (fallback to id)
