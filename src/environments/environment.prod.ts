@@ -13,5 +13,12 @@ export const environment = {
     retryAttempts: 5,
     retryDelay: 1000,
     maxRetryDelay: 10000,
+  },
+  photos: {
+    maxUploadSize: 10 * 1024 * 1024, // 10MB
+    allowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    realtimeNotifications: true,
+    enableToastNotifications: true,
+    notificationDuration: 2000
   }
 };

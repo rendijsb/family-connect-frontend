@@ -61,6 +61,12 @@ export const routes: Routes = [
       },
     ],
   },
+  {
+    path: ':slug/photos',
+    canActivate: [familyGuard, familyAllGuard],
+    loadChildren: () =>
+      import('../photos/photos.routes').then((m) => m.photosRoutes),
+  },
 ];
 
 export const familyRoutes = routes;

@@ -1,0 +1,139 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Create Album</ion-title>
+    <ion-buttons slot="start">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button 
+        [disabled]="albumForm.invalid || creating"
+        (click)="createAlbum()">
+        <ion-icon name="checkmark" slot="start"></ion-icon>
+        Create
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <form [formGroup]="albumForm" (ngSubmit)="createAlbum()">
+    <!-- Basic Info -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Album Details</ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <ion-item>
+          <ion-input
+            formControlName="name"
+            label="Album Name *"
+            labelPlacement="floating"
+            placeholder="Enter album name"
+            maxlength="100"
+            clearInput="true">
+          </ion-input>
+        </ion-item>
+        
+        <ion-item>
+          <ion-textarea
+            formControlName="description"
+            label="Description"
+            labelPlacement="floating"
+            placeholder="Describe your album (optional)"
+            rows="3"
+            maxlength="500">
+          </ion-textarea>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Privacy Settings -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Privacy Settings</ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <ion-list>
+          <ion-item 
+            button
+            *ngFor="let option of privacyOptions"
+            (click)="albumForm.get('privacy')?.setValue(option.value)"
+            [class.selected]="albumForm.get('privacy')?.value === option.value">
+            
+            <ion-icon [name]="option.icon" slot="start"></ion-icon>
+            
+            <ion-label>
+              <h3>{{ option.label }}</h3>
+              <p>{{ option.description }}</p>
+            </ion-label>
+            
+            <ion-checkbox
+              slot="end"
+              [checked]="albumForm.get('privacy')?.value === option.value">
+            </ion-checkbox>
+          </ion-item>
+        </ion-list>
+
+        <!-- Specific Members Selection -->
+        <div *ngIf="isSpecificMembers" class="member-selection">
+          <ion-text>
+            <h4>Select Members ({{ selectedMembersCount }} selected)</h4>
+          </ion-text>
+          
+          <ion-grid>
+            <ion-row>
+              <ion-col 
+                size="6" 
+                *ngFor="let member of familyMembers">
+                <ion-item 
+                  button
+                  (click)="toggleMemberSelection(member.id)"
+                  [class.selected]="isMemberSelected(member.id)">
+                  
+                  <ion-checkbox
+                    slot="start"
+                    [checked]="isMemberSelected(member.id)">
+                  </ion-checkbox>
+                  
+                  <ion-label>
+                    <h3>{{ member.name }}</h3>
+                    <p>{{ member.role }}</p>
+                  </ion-label>
+                </ion-item>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Album Settings -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Album Settings</ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <ion-item>
+          <ion-checkbox formControlName="allowDownload"></ion-checkbox>
+          <ion-label class="ion-margin-start">
+            <h3>Allow Downloads</h3>
+            <p>Members can download photos from this album</p>
+          </ion-label>
+        </ion-item>
+        
+        <ion-item>
+          <ion-checkbox formControlName="allowComments"></ion-checkbox>
+          <ion-label class="ion-margin-start">
+            <h3>Allow Comments</h3>
+            <p>Members can comment on photos in this album</p>
+          </ion-label>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+  </form>
+</ion-content>

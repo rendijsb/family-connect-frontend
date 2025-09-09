@@ -1,0 +1,227 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      {{ currentIndex + 1 }} of {{ data.photos.length }}
+    </ion-title>
+    <ion-buttons slot="start">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button (click)="presentMoreActions()">
+        <ion-icon name="ellipsisVertical"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Photo Slides -->
+  <div class="photo-container">
+    <ion-slides 
+      #slides
+      [options]="{ 
+        initialSlide: currentIndex, 
+        spaceBetween: 0,
+        centeredSlides: true,
+        zoom: { maxRatio: 3 }
+      }"
+      (ionSlideDidChange)="onSlideChange()">
+      <ion-slide *ngFor="let photo of data.photos; let i = index">
+        <div class="slide-content">
+          <ion-img 
+            [src]="photo.path" 
+            [alt]="photo.originalName"
+            class="main-photo">
+          </ion-img>
+        </div>
+      </ion-slide>
+    </ion-slides>
+
+    <!-- Navigation Arrows -->
+    <ion-button 
+      *ngIf="currentIndex > 0"
+      class="nav-arrow nav-prev"
+      fill="clear"
+      (click)="goToPrevious()">
+      <ion-icon name="chevronBack"></ion-icon>
+    </ion-button>
+
+    <ion-button 
+      *ngIf="currentIndex < data.photos.length - 1"
+      class="nav-arrow nav-next"
+      fill="clear"
+      (click)="goToNext()">
+      <ion-icon name="chevronForward"></ion-icon>
+    </ion-button>
+  </div>
+
+  <!-- Photo Actions -->
+  <div class="photo-actions">
+    <div class="action-buttons">
+      <ion-button 
+        fill="clear" 
+        class="action-btn"
+        (click)="toggleLike()">
+        <ion-icon 
+          [name]="currentPhoto?.isLiked ? 'heart' : 'heartOutline'"
+          [color]="currentPhoto?.isLiked ? 'danger' : 'medium'">
+        </ion-icon>
+        <span>{{ currentPhoto?.likesCount || 0 }}</span>
+      </ion-button>
+
+      <ion-button 
+        fill="clear" 
+        class="action-btn"
+        (click)="toggleComments()">
+        <ion-icon name="chatbubble" color="medium"></ion-icon>
+        <span>{{ currentPhoto?.commentsCount || 0 }}</span>
+      </ion-button>
+
+      <ion-button 
+        fill="clear" 
+        class="action-btn"
+        (click)="sharePhoto()">
+        <ion-icon name="share" color="medium"></ion-icon>
+      </ion-button>
+
+      <ion-button 
+        fill="clear" 
+        class="action-btn"
+        (click)="toggleDetails()">
+        <ion-icon name="informationCircle" color="medium"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Photo Details Panel -->
+  <div class="details-panel" [class.show]="showDetails" *ngIf="currentPhoto">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>{{ currentPhoto.originalName }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="detail-row" *ngIf="currentPhoto.description">
+          <strong>Description:</strong>
+          <p>{{ currentPhoto.description }}</p>
+        </div>
+
+        <div class="detail-row">
+          <strong>Uploaded by:</strong>
+          <div class="uploader-info">
+            <ion-avatar *ngIf="currentPhoto.uploadedBy.avatar">
+              <img [src]="currentPhoto.uploadedBy.avatar" [alt]="currentPhoto.uploadedBy.name">
+            </ion-avatar>
+            <span>{{ currentPhoto.uploadedBy.name }}</span>
+          </div>
+        </div>
+
+        <div class="detail-row" *ngIf="currentPhoto.takenAt">
+          <strong>Date taken:</strong>
+          <span>{{ formatDate(currentPhoto.takenAt) }}</span>
+        </div>
+
+        <div class="detail-row" *ngIf="currentPhoto.location">
+          <strong>Location:</strong>
+          <span>{{ currentPhoto.location }}</span>
+        </div>
+
+        <div class="detail-row">
+          <strong>File size:</strong>
+          <span>{{ formatFileSize(currentPhoto.size) }}</span>
+        </div>
+
+        <div class="detail-row" *ngIf="currentPhoto.width && currentPhoto.height">
+          <strong>Dimensions:</strong>
+          <span>{{ currentPhoto.width }} × {{ currentPhoto.height }}</span>
+        </div>
+
+        <div class="detail-row">
+          <strong>Views:</strong>
+          <span>{{ currentPhoto.viewsCount }}</span>
+        </div>
+
+        <div class="detail-row" *ngIf="currentPhoto.tags && currentPhoto.tags.length > 0">
+          <strong>Tags:</strong>
+          <div class="tags">
+            <ion-chip *ngFor="let tag of currentPhoto.tags" color="primary">
+              {{ tag }}
+            </ion-chip>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Comments Panel -->
+  <div class="comments-panel" [class.show]="showComments">
+    <div class="comments-header">
+      <h3>Comments ({{ currentPhoto?.commentsCount || 0 }})</h3>
+      <ion-button fill="clear" (click)="toggleComments()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </div>
+
+    <!-- New Comment -->
+    <div class="new-comment">
+      <ion-item>
+        <ion-textarea
+          [(ngModel)]="newComment"
+          placeholder="Add a comment..."
+          rows="2"
+          maxlength="500">
+        </ion-textarea>
+        <ion-button 
+          slot="end" 
+          fill="clear"
+          [disabled]="!newComment.trim()"
+          (click)="addComment()">
+          <ion-icon name="send"></ion-icon>
+        </ion-button>
+      </ion-item>
+    </div>
+
+    <!-- Comments List -->
+    <ion-list class="comments-list">
+      <div *ngIf="loading" class="loading-comments">
+        <ion-item *ngFor="let i of [1,2,3]">
+          <ion-avatar slot="start">
+            <ion-skeleton-text animated></ion-skeleton-text>
+          </ion-avatar>
+          <ion-label>
+            <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+          </ion-label>
+        </ion-item>
+      </div>
+
+      <ion-item *ngFor="let comment of comments; trackBy: trackByCommentId">
+        <ion-avatar slot="start">
+          <img 
+            *ngIf="comment.userAvatar; else defaultAvatar"
+            [src]="comment.userAvatar" 
+            [alt]="comment.userName">
+          <ng-template #defaultAvatar>
+            <ion-icon name="person"></ion-icon>
+          </ng-template>
+        </ion-avatar>
+        
+        <ion-label>
+          <div class="comment-header">
+            <strong>{{ comment.userName }}</strong>
+            <ion-text color="medium" class="comment-date">
+              {{ formatDate(comment.createdAt) }}
+            </ion-text>
+            <ion-badge *ngIf="comment.isEdited" color="light">edited</ion-badge>
+          </div>
+          <p class="comment-text">{{ comment.comment }}</p>
+        </ion-label>
+      </ion-item>
+
+      <div *ngIf="!loading && comments.length === 0" class="no-comments">
+        <ion-text color="medium">No comments yet. Be the first to comment!</ion-text>
+      </div>
+    </ion-list>
+  </div>
+</ion-content>

@@ -1,0 +1,254 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Upload Photos</ion-title>
+    <ion-buttons slot="start">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button 
+        [disabled]="files.length === 0 || isUploading"
+        (click)="startUpload()">
+        <ion-icon name="cloudUpload" slot="start"></ion-icon>
+        Upload
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  
+  <!-- Upload Progress -->
+  <ion-toolbar *ngIf="isUploading">
+    <ion-title size="small">Uploading... {{ uploadProgress.toFixed(0) }}%</ion-title>
+    <ion-progress-bar [value]="uploadProgress / 100"></ion-progress-bar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Empty State -->
+  <div *ngIf="files.length === 0" class="empty-state">
+    <ion-icon name="cloudUpload" size="large" color="medium"></ion-icon>
+    <h2>Upload Photos & Videos</h2>
+    <p>Share your memories with your family</p>
+    
+    <div class="upload-options">
+      <ion-button expand="block" (click)="takePhoto()">
+        <ion-icon name="camera" slot="start"></ion-icon>
+        Take Photo
+      </ion-button>
+      
+      <ion-button expand="block" fill="outline" (click)="selectFromGallery()">
+        <ion-icon name="images" slot="start"></ion-icon>
+        Choose from Gallery
+      </ion-button>
+      
+      <ion-button expand="block" fill="outline" (click)="selectFiles()">
+        <ion-icon name="folder" slot="start"></ion-icon>
+        Select Files
+      </ion-button>
+    </div>
+    
+    <div class="upload-info">
+      <ion-text color="medium">
+        <p>• Maximum {{ maxFiles }} files</p>
+        <p>• Up to {{ formatFileSize(maxFileSize) }} per file</p>
+        <p>• Supports JPG, PNG, GIF, WebP, MP4</p>
+      </ion-text>
+    </div>
+  </div>
+
+  <!-- Files List -->
+  <div *ngIf="files.length > 0">
+    <!-- Bulk Settings -->
+    <ion-card class="bulk-settings">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-checkbox 
+            [(ngModel)]="applyBulkSettings"
+            (ionChange)="applyBulkSettingsToAll()">
+          </ion-checkbox>
+          Apply to all photos
+        </ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content *ngIf="applyBulkSettings">
+        <ion-item>
+          <ion-input
+            [(ngModel)]="bulkDescription"
+            placeholder="Description for all photos"
+            maxlength="500">
+          </ion-input>
+        </ion-item>
+        
+        <ion-item>
+          <ion-input
+            [(ngModel)]="bulkTags"
+            placeholder="Tags (comma separated)"
+            maxlength="200">
+          </ion-input>
+        </ion-item>
+        
+        <ion-item>
+          <ion-input
+            [(ngModel)]="bulkLocation"
+            placeholder="Location for all photos"
+            maxlength="100">
+          </ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Upload Stats -->
+    <div class="upload-stats">
+      <ion-chip color="primary">
+        <ion-label>{{ files.length }} files selected</ion-label>
+      </ion-chip>
+      
+      <ion-chip 
+        *ngIf="files.filter(f => f.status === 'completed').length > 0"
+        color="success">
+        <ion-icon name="checkmark"></ion-icon>
+        <ion-label>{{ files.filter(f => f.status === 'completed').length }} uploaded</ion-label>
+      </ion-chip>
+      
+      <ion-chip 
+        *ngIf="files.filter(f => f.status === 'error').length > 0"
+        color="danger">
+        <ion-icon name="close"></ion-icon>
+        <ion-label>{{ files.filter(f => f.status === 'error').length }} failed</ion-label>
+      </ion-chip>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons" *ngIf="!isUploading">
+      <ion-button 
+        size="small" 
+        fill="outline"
+        (click)="presentSourceActionSheet()">
+        <ion-icon name="add" slot="start"></ion-icon>
+        Add More
+      </ion-button>
+      
+      <ion-button 
+        *ngIf="files.filter(f => f.status === 'error').length > 0"
+        size="small" 
+        fill="outline" 
+        color="warning"
+        (click)="retryFailedUploads()">
+        <ion-icon name="refresh" slot="start"></ion-icon>
+        Retry Failed
+      </ion-button>
+      
+      <ion-button 
+        *ngIf="files.filter(f => f.status === 'completed').length > 0"
+        size="small" 
+        fill="outline" 
+        color="medium"
+        (click)="clearCompleted()">
+        <ion-icon name="checkmark" slot="start"></ion-icon>
+        Clear Completed
+      </ion-button>
+    </div>
+
+    <!-- Files Grid -->
+    <ion-grid>
+      <ion-row>
+        <ion-col 
+          size="6" 
+          size-md="4" 
+          size-lg="3" 
+          *ngFor="let file of files; trackBy: trackByFileId">
+          
+          <ion-card class="file-card" [class]="file.status">
+            <!-- File Preview -->
+            <div class="file-preview">
+              <ion-img [src]="file.preview" [alt]="file.name"></ion-img>
+              
+              <!-- Status Overlay -->
+              <div class="status-overlay" [ngSwitch]="file.status">
+                <div *ngSwitchCase="'uploading'" class="uploading-status">
+                  <ion-progress-bar [value]="file.uploadProgress / 100"></ion-progress-bar>
+                  <ion-text>{{ file.uploadProgress.toFixed(0) }}%</ion-text>
+                </div>
+                
+                <ion-icon 
+                  *ngSwitchCase="'completed'" 
+                  name="checkmark-circle" 
+                  color="success" 
+                  size="large">
+                </ion-icon>
+                
+                <div *ngSwitchCase="'error'" class="error-status">
+                  <ion-icon name="alert-circle" color="danger" size="large"></ion-icon>
+                  <ion-text color="danger">{{ file.errorMessage }}</ion-text>
+                </div>
+              </div>
+              
+              <!-- Remove Button -->
+              <ion-button 
+                *ngIf="file.status !== 'uploading'"
+                class="remove-btn" 
+                fill="clear" 
+                size="small"
+                (click)="removeFile(file.id)">
+                <ion-icon name="trash"></ion-icon>
+              </ion-button>
+            </div>
+            
+            <!-- File Details -->
+            <ion-card-content>
+              <div class="file-info">
+                <ion-text class="file-name">{{ file.name }}</ion-text>
+                <ion-text color="medium" class="file-size">
+                  {{ formatFileSize(file.size) }}
+                </ion-text>
+              </div>
+              
+              <!-- Individual Settings -->
+              <div class="file-settings" *ngIf="!applyBulkSettings && file.status === 'pending'">
+                <ion-item>
+                  <ion-textarea
+                    [value]="file.description"
+                    (ionInput)="updateFileDescription(file.id, $event.detail.value!)"
+                    placeholder="Description"
+                    rows="2"
+                    maxlength="500">
+                  </ion-textarea>
+                </ion-item>
+                
+                <ion-item>
+                  <ion-input
+                    [value]="file.tags.join(', ')"
+                    (ionInput)="updateFileTags(file.id, $event.detail.value!)"
+                    placeholder="Tags"
+                    maxlength="200">
+                  </ion-input>
+                </ion-item>
+                
+                <ion-item>
+                  <ion-input
+                    [value]="file.location"
+                    (ionInput)="updateFileLocation(file.id, $event.detail.value!)"
+                    placeholder="Location"
+                    maxlength="100">
+                  </ion-input>
+                </ion-item>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+  <!-- Add More FAB -->
+  <ion-fab 
+    slot="fixed" 
+    vertical="bottom" 
+    horizontal="end"
+    *ngIf="files.length > 0 && !isUploading">
+    <ion-fab-button (click)="presentSourceActionSheet()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>

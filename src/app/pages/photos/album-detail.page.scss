@@ -1,0 +1,256 @@
+.album-info {
+  padding: 16px;
+  background: var(--ion-background-color);
+  border-bottom: 1px solid var(--ion-color-light);
+  
+  .album-details {
+    h2 {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    p {
+      margin: 0 0 12px 0;
+      color: var(--ion-color-medium);
+      line-height: 1.4;
+    }
+    
+    .album-stats {
+      font-size: 14px;
+      color: var(--ion-color-medium);
+      margin-bottom: 8px;
+      
+      span {
+        margin-right: 4px;
+      }
+    }
+    
+    .album-creator {
+      font-size: 12px;
+    }
+  }
+}
+
+.search-container {
+  padding: 0 16px 8px;
+  background: var(--ion-background-color);
+}
+
+.selection-controls {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: var(--ion-color-light);
+  border-bottom: 1px solid var(--ion-color-medium);
+}
+
+.loading-container {
+  padding: 16px;
+}
+
+.photo-skeleton {
+  aspect-ratio: 1;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+  overflow: hidden;
+  
+  ion-skeleton-text {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.photo-item {
+  position: relative;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  
+  &.selected {
+    .photo-thumbnail {
+      border: 3px solid var(--ion-color-primary);
+    }
+  }
+  
+  &:active {
+    transform: scale(0.98);
+  }
+  
+  .selection-checkbox {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    padding: 4px;
+  }
+  
+  .photo-thumbnail {
+    position: relative;
+    aspect-ratio: 1;
+    background: var(--ion-color-light);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: border-color 0.2s ease;
+    
+    ion-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .media-type-chip {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      height: 24px;
+      z-index: 5;
+      
+      ion-icon {
+        font-size: 14px;
+      }
+    }
+    
+    .favorite-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 16px;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+      z-index: 5;
+    }
+    
+    .photo-stats {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+      padding: 12px 8px 6px;
+      display: flex;
+      gap: 8px;
+      z-index: 5;
+      
+      .stat {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        color: white;
+        font-size: 11px;
+        font-weight: 500;
+        
+        ion-icon {
+          font-size: 12px;
+        }
+      }
+    }
+    
+    .photo-action-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 32px;
+      height: 32px;
+      --padding-start: 0;
+      --padding-end: 0;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 50%;
+      z-index: 10;
+      
+      ion-icon {
+        font-size: 16px;
+        color: white;
+      }
+    }
+  }
+  
+  .photo-info {
+    padding: 6px 4px 0;
+    text-align: center;
+    
+    .photo-name {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .photo-date {
+      display: block;
+      font-size: 10px;
+      margin-top: 2px;
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  min-height: 300px;
+  
+  ion-icon {
+    margin-bottom: 16px;
+    font-size: 64px;
+  }
+  
+  h2 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  
+  p {
+    margin: 0 0 24px 0;
+    color: var(--ion-color-medium);
+    max-width: 280px;
+  }
+}
+
+// Responsive adjustments
+@media (min-width: 768px) {
+  .photo-item {
+    .photo-action-btn {
+      width: 36px;
+      height: 36px;
+      
+      ion-icon {
+        font-size: 18px;
+      }
+    }
+    
+    .photo-info {
+      padding: 8px 4px 0;
+      
+      .photo-name {
+        font-size: 12px;
+      }
+      
+      .photo-date {
+        font-size: 11px;
+      }
+    }
+  }
+}
+
+@media (min-width: 992px) {
+  .photo-item {
+    margin-bottom: 12px;
+    
+    .photo-info {
+      padding: 10px 4px 0;
+      
+      .photo-name {
+        font-size: 13px;
+      }
+    }
+  }
+}

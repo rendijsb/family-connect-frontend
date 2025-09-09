@@ -1,0 +1,44 @@
+ion-item.selected {
+  --background: var(--ion-color-primary-tint);
+  --border-color: var(--ion-color-primary);
+}
+
+.member-selection {
+  margin-top: 16px;
+  
+  h4 {
+    margin: 8px 0;
+    font-weight: 600;
+    color: var(--ion-color-primary);
+  }
+  
+  ion-grid {
+    padding: 8px 0;
+  }
+  
+  ion-item {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--ion-color-light);
+    
+    &.selected {
+      --background: var(--ion-color-primary-tint);
+      border-color: var(--ion-color-primary);
+    }
+    
+    ion-label {
+      h3 {
+        font-size: 14px;
+        margin: 0;
+      }
+      
+      p {
+        font-size: 12px;
+        margin: 2px 0 0 0;
+        color: var(--ion-color-medium);
+      }
+    }
+  }
+}

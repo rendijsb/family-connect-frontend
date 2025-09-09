@@ -1,0 +1,191 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/family/{{ familySlug }}/photos"></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      <span *ngIf="!selectionMode">{{ album?.name || 'Album' }}</span>
+      <span *ngIf="selectionMode">{{ selectedPhotos.size }} selected</span>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button *ngIf="selectionMode" (click)="presentBulkActions()">
+        <ion-icon name="ellipsisVertical"></ion-icon>
+      </ion-button>
+      <ion-button *ngIf="selectionMode" (click)="toggleSelectionMode()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+      <ion-button *ngIf="!selectionMode" (click)="toggleSelectionMode()">
+        <ion-icon name="checkboxOutline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">{{ album?.name || 'Album' }}</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Album Info -->
+  <div *ngIf="album && !loading" class="album-info">
+    <div class="album-details">
+      <h2>{{ album.name }}</h2>
+      <p *ngIf="album.description">{{ album.description }}</p>
+      <div class="album-stats">
+        <span>{{ album.photoCount }} photos</span>
+        <span *ngIf="album.videoCount > 0">• {{ album.videoCount }} videos</span>
+        <span>• {{ formatFileSize(album.totalSize) }}</span>
+      </div>
+      <div class="album-creator">
+        <ion-text color="medium">
+          Created by {{ album.createdBy.name }}
+        </ion-text>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-container" *ngIf="!selectionMode">
+    <ion-searchbar 
+      placeholder="Search photos..." 
+      [debounce]="300"
+      (ionInput)="onSearchChange($event)">
+    </ion-searchbar>
+  </div>
+
+  <!-- Selection Mode Controls -->
+  <div *ngIf="selectionMode" class="selection-controls">
+    <ion-button fill="clear" size="small" (click)="selectAllPhotos()">
+      Select All
+    </ion-button>
+    <ion-button fill="clear" size="small" (click)="deselectAllPhotos()">
+      Deselect All
+    </ion-button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="4" size-md="3" size-lg="2" *ngFor="let i of [1,2,3,4,5,6,7,8,9]">
+          <div class="photo-skeleton">
+            <ion-skeleton-text animated></ion-skeleton-text>
+          </div>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+  <!-- Photos Grid -->
+  <div *ngIf="!loading">
+    <ion-grid>
+      <ion-row>
+        <ion-col 
+          size="4" 
+          size-md="3" 
+          size-lg="2" 
+          *ngFor="let photo of filteredPhotos; let i = index; trackBy: trackByPhotoId">
+          <div 
+            class="photo-item"
+            [class.selected]="selectedPhotos.has(photo.id)"
+            (click)="openPhoto(photo, i)">
+            
+            <!-- Selection Checkbox -->
+            <div *ngIf="selectionMode" class="selection-checkbox">
+              <ion-checkbox 
+                [checked]="selectedPhotos.has(photo.id)"
+                (ionChange)="togglePhotoSelection(photo)">
+              </ion-checkbox>
+            </div>
+            
+            <!-- Photo Thumbnail -->
+            <div class="photo-thumbnail">
+              <ion-img 
+                [src]="photo.thumbnailPath || photo.path"
+                [alt]="photo.originalName">
+              </ion-img>
+              
+              <!-- Photo Type Badge -->
+              <ion-chip *ngIf="photo.filename.includes('.mp4')" class="media-type-chip">
+                <ion-icon name="videocam"></ion-icon>
+              </ion-chip>
+              
+              <!-- Favorite Badge -->
+              <ion-icon 
+                *ngIf="photo.isFavorite" 
+                name="heart" 
+                class="favorite-badge" 
+                color="danger">
+              </ion-icon>
+              
+              <!-- Stats Overlay -->
+              <div class="photo-stats" *ngIf="!selectionMode">
+                <div class="stat" *ngIf="photo.likesCount > 0">
+                  <ion-icon name="heart"></ion-icon>
+                  <span>{{ photo.likesCount }}</span>
+                </div>
+                <div class="stat" *ngIf="photo.commentsCount > 0">
+                  <ion-icon name="chatbubble"></ion-icon>
+                  <span>{{ photo.commentsCount }}</span>
+                </div>
+              </div>
+              
+              <!-- Action Button -->
+              <ion-button 
+                *ngIf="!selectionMode"
+                fill="clear" 
+                class="photo-action-btn"
+                (click)="presentPhotoActionSheet(photo, $event)">
+                <ion-icon name="ellipsisVertical"></ion-icon>
+              </ion-button>
+            </div>
+            
+            <!-- Photo Info -->
+            <div class="photo-info" *ngIf="!selectionMode">
+              <ion-text class="photo-name">{{ photo.originalName }}</ion-text>
+              <ion-text color="medium" class="photo-date">
+                {{ formatDate(photo.createdAt) }}
+              </ion-text>
+            </div>
+          </div>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredPhotos.length === 0" class="empty-state">
+    <ion-icon name="image" size="large" color="medium"></ion-icon>
+    <h2>No Photos Found</h2>
+    <p>
+      <span *ngIf="searchTerm">No photos match your search.</span>
+      <span *ngIf="!searchTerm">Upload some photos to get started!</span>
+    </p>
+    <ion-button *ngIf="!searchTerm" (click)="openUploadModal()">
+      <ion-icon name="cloudUpload" slot="start"></ion-icon>
+      Upload Photos
+    </ion-button>
+  </div>
+
+  <!-- Upload FAB -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="!selectionMode">
+    <ion-fab-button (click)="openUploadModal()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- Infinite Scroll -->
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMore($event)">
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Loading more photos...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+</ion-content>
