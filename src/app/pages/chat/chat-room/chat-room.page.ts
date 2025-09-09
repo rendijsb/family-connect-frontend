@@ -196,7 +196,7 @@ export class ChatRoomPage implements OnInit, OnDestroy, AfterViewInit {
 
       // Step 3: Join the chat room
       console.log('🏠 Step 2: Joining chat room...');
-      this.chatService.joinChatRoom(roomId);
+      await this.chatService.joinChatRoom(roomId);
 
       // Step 4: Subscribe to real-time events
       console.log('📡 Step 3: Setting up real-time event subscriptions...');

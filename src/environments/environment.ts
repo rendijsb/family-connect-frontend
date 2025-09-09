@@ -4,12 +4,8 @@ export const environment = {
   appName: 'Family Connect',
   version: '1.0.0',
   enableDebugMode: false,
-  pusher: {
-    key: '40fb26d70f1e65939629',
-    cluster: 'eu',
-    forceTLS: true,
-    encrypted: true,
-    enabledTransports: ['wss'],
+  ably: {
+    key: 'aF6gOw.p2-Uvg:QhwqFFMLESTcYgdX0U93pG9Xt4OhN8EuFMDV2CLnfrU',
     authEndpoint: 'https://family-connect.laravel.cloud/api/broadcasting/auth',
   },
   websocket: {

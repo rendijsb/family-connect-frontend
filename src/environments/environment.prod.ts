@@ -4,19 +4,9 @@ export const environment = {
   appName: 'Family Connect',
   version: '1.0.0',
   enableDebugMode: false,
-  reverb: {
-    host: 'family-connect.laravel.cloud',
-    port: 8080, // Use internal port for WebSocket
-    scheme: 'https',
-    key: 'family-connect-key',
-    cluster: undefined,
-    encrypted: true,
-    forceTLS: true,
-    enabledTransports: ['wss'],
+  ably: {
+    key: 'aF6gOw.p2-Uvg:QhwqFFMLESTcYgdX0U93pG9Xt4OhN8EuFMDV2CLnfrU',
     authEndpoint: 'https://family-connect.laravel.cloud/api/broadcasting/auth',
-    wsHost: 'family-connect.laravel.cloud',
-    wsPort: 8080,
-    wssPort: 8080,
   },
   websocket: {
     enabled: true,

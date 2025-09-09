@@ -20,6 +20,7 @@
   },
   "private": true,
   "dependencies": {
+    "@ably/laravel-echo": "^1.0.6",
     "@angular/common": "^20.1.6",
     "@angular/compiler": "^20.1.0",
     "@angular/core": "^20.1.0",
@@ -39,6 +40,7 @@
     "@capacitor/splash-screen": "^7.0.2",
     "@capacitor/status-bar": "7.0.2",
     "@ionic/angular": "^8.7.2",
+    "ably": "^2.12.0",
     "laravel-echo": "^2.2.0",
     "pusher-js": "^8.4.0",
     "rxjs": "~7.8.0",

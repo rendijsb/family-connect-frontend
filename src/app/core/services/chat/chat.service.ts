@@ -449,7 +449,7 @@ export class ChatService {
     }
   }
 
-  joinChatRoom(roomId: number): void {
+  async joinChatRoom(roomId: number): Promise<void> {
     console.log('🏠 Joining chat room:', roomId);
 
     // Leave previous room if any
@@ -463,7 +463,7 @@ export class ChatService {
       const channelName = `chat-room.${roomId}`;
       console.log('🏠 Attempting to join channel:', channelName);
 
-      const channel = this.webSocketService.joinPrivateChannel(channelName);
+      const channel = await this.webSocketService.joinPrivateChannel(channelName);
 
       if (channel) {
         this.currentChatChannel = channel;
@@ -474,6 +474,7 @@ export class ChatService {
       }
     } catch (error) {
       console.error('❌ Failed to join chat room:', roomId, error);
+      throw error;
     }
   }
 

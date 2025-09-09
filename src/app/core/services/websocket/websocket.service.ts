@@ -5,13 +5,13 @@ import { environment } from '../../../../environments/environment';
 
 declare global {
   interface Window {
-    Pusher: any;
+    Ably: any;
     Echo: any;
   }
 }
 
 let Echo: any = null;
-let Pusher: any = null;
+let Ably: any = null;
 
 export enum ConnectionState {
   DISCONNECTED = 'disconnected',
@@ -54,21 +54,25 @@ export class WebSocketService implements OnDestroy {
   }
 
   private async initializeLibraries(): Promise<void> {
-    if (Echo && Pusher) return;
+    if (Echo && Ably) return;
 
     try {
       console.log('📦 Loading WebSocket libraries...');
 
-      const [echoModule, pusherModule] = await Promise.all([
-        import('laravel-echo'),
-        import('pusher-js'),
-      ]);
+      // Load Ably first
+      const ablyModule = await import('ably');
+      Ably = ablyModule.default || ablyModule;
 
-      Echo = echoModule.default;
-      Pusher = pusherModule.default;
-      window.Pusher = Pusher;
+      // Set Ably on window for Echo to use
+      window.Ably = Ably;
+
+      // Now load Laravel Echo
+      const echoModule = await import('@ably/laravel-echo');
+      Echo = echoModule.default || echoModule;
 
       console.log('✅ WebSocket libraries loaded successfully');
+      console.log('📋 Ably version:', Ably?.version || 'unknown');
+      console.log('📋 Echo loaded:', !!Echo);
     } catch (error) {
       console.error('❌ Failed to load WebSocket libraries:', error);
       this.connectionStateSubject.next(ConnectionState.FAILED);
@@ -94,84 +98,53 @@ export class WebSocketService implements OnDestroy {
       throw new Error('No auth token available');
     }
 
-    console.log('🚀 Starting Pusher connection...');
+    console.log('🚀 Starting Ably connection...');
     this.connectionStateSubject.next(ConnectionState.CONNECTING);
     this.connectionStartTime = Date.now();
 
     try {
       await this.initializeLibraries();
 
-      if (!Echo || !Pusher) {
+      if (!Echo || !Ably) {
         throw new Error('WebSocket libraries not available');
       }
 
-      console.log('🔧 Creating Echo instance with Pusher config:', {
-        broadcaster: 'pusher',
-        key: environment.pusher.key,
-        cluster: environment.pusher.cluster,
-        forceTLS: true,
-        encrypted: true,
-        authEndpoint: environment.pusher.authEndpoint,
+      // Set Ably globally for @ably/laravel-echo (required)
+      window.Ably = Ably;
+
+      console.log('🔧 Creating Echo instance with standard @ably/laravel-echo config:', {
+        broadcaster: 'ably',
+        key: environment.ably.key,
+        authEndpoint: environment.ably.authEndpoint,
+        token: token ? 'present' : 'missing'
       });
 
-      // Clean Pusher configuration
-      this.echo = new Echo({
-        broadcaster: 'pusher',
-        key: environment.pusher.key,
-        cluster: environment.pusher.cluster,
-        forceTLS: true,
-        encrypted: true,
-        disableStats: true,
+      const ablyClient = new Ably.Realtime({
+        key: environment.ably.key,
+        authUrl: environment.ably.authEndpoint,
+        authHeaders: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      });
 
-        // Auth configuration for private channels
-        authEndpoint: environment.pusher.authEndpoint,
+      this.echo = new Echo({
+        broadcaster: 'ably',
+        client: ablyClient, // from earlier fix
+        authEndpoint: environment.ably.authEndpoint,
         auth: {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json',
-            'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
           },
+          method: 'POST', // 👈 force POST instead of GET
         },
-
-        // Custom authorizer for proper data format
-        authorizer: (channel: any, options: any) => {
-          return {
-            authorize: (socketId: string, callback: any) => {
-              console.log('🔐 Authorizing channel:', channel.name, 'Socket:', socketId);
-
-              fetch(environment.pusher.authEndpoint, {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json',
-                  'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({
-                  socket_id: socketId,
-                  channel_name: channel.name
-                })
-              })
-                .then(response => {
-                  console.log('🔐 Auth response status:', response.status);
-                  if (!response.ok) {
-                    throw new Error(`Auth failed: ${response.status}`);
-                  }
-                  return response.json();
-                })
-                .then(data => {
-                  console.log('✅ Channel auth successful:', data);
-                  callback(null, data);
-                })
-                .catch(error => {
-                  console.error('❌ Channel auth failed:', error);
-                  callback(error, null);
-                });
-            }
-          };
-        },
+        echoMessages: false,
+        queueMessages: true,
       });
+
 
       console.log('🔗 Echo instance created, setting up connection handlers...');
       this.setupConnectionHandlers();
@@ -185,64 +158,107 @@ export class WebSocketService implements OnDestroy {
   }
 
   private setupConnectionHandlers(): void {
-    if (!this.echo?.connector?.pusher) {
-      console.error('❌ Pusher connector not available');
+    console.log('🔧 Setting up connection handlers...');
+    console.log('🔍 Echo structure:', {
+      hasEcho: !!this.echo,
+      hasConnector: !!this.echo?.connector,
+      connectorType: typeof this.echo?.connector,
+      connectorKeys: this.echo?.connector ? Object.keys(this.echo.connector) : 'none'
+    });
+
+    // For @ably/laravel-echo with Realtime client, access it from connector
+    let ably = this.echo?.connector?.ably;
+
+    // If that doesn't exist, try to get it from the options or directly from Echo
+    if (!ably && this.echo?.connector?.options?.client) {
+      ably = this.echo.connector.options.client;
+      console.log('🔍 Using client from options');
+    }
+
+    if (!ably) {
+      console.error('❌ Ably client not available - this should not happen with Realtime client');
+      this.handleConnectionFailure();
       return;
     }
 
-    const pusher = this.echo.connector.pusher;
-    console.log('🔧 Setting up Pusher event handlers...');
+    console.log('🔧 Found Ably client, setting up event handlers...');
+    console.log('🔍 Ably client type:', ably.constructor.name);
 
-    // Connection established
-    pusher.connection.bind('connected', () => {
-      const connectionTime = Date.now() - this.connectionStartTime;
-      console.log(`🎉 Pusher connected successfully in ${connectionTime}ms`);
-      console.log('🔗 Socket ID:', pusher.connection.socket_id);
+    // Check if it's a realtime client (has connection property)
+    if (ably.connection) {
+      // Connection established
+      ably.connection.on('connected', () => {
+        const connectionTime = Date.now() - this.connectionStartTime;
+        console.log(`🎉 Ably connected successfully in ${connectionTime}ms`);
+        console.log('🔗 Connection ID:', ably.connection.id);
 
+        // DEBUG: Monitor all incoming messages on the connection
+        ably.connection.on('message', (message: any) => {
+          console.log('🎯 DEBUG: Raw connection message:', {
+            action: message.action,
+            channel: message.channel,
+            messages: message.messages,
+            timestamp: Date.now()
+          });
+        });
+
+        // DEBUG: Listen to ALL channels that get created
+        const originalChannelsGet = ably.channels.get;
+        ably.channels.get = function(channelName: string) {
+          const channel = originalChannelsGet.call(this, channelName);
+          console.log(`🔍 DEBUG: Channel created/accessed: ${channelName}`);
+          
+          // Add a universal listener to this channel
+          channel.subscribe((message: any) => {
+            console.log(`🎯 DEBUG: UNIVERSAL MESSAGE on ${channelName}:`, {
+              channel: channelName,
+              name: message.name,
+              data: message.data,
+              timestamp: message.timestamp
+            });
+          });
+          
+          return channel;
+        };
+
+        this.connectionStateSubject.next(ConnectionState.CONNECTED);
+        this.lastSuccessfulConnection = new Date();
+        this.reconnectAttempts = 0;
+        this.clearTimeouts();
+      });
+
+      // Connection lost
+      ably.connection.on('disconnected', () => {
+        console.log('💔 Ably connection lost');
+        this.connectionStateSubject.next(ConnectionState.DISCONNECTED);
+        this.scheduleReconnect();
+      });
+
+      // Connection errors
+      ably.connection.on('failed', (error: any) => {
+        console.error('❌ Ably connection error:', error);
+
+        if (this.isUnrecoverableError(error)) {
+          console.error('❌ Unrecoverable error detected');
+          this.connectionStateSubject.next(ConnectionState.FAILED);
+          return;
+        }
+
+        this.handleConnectionFailure();
+      });
+
+      // State changes
+      ably.connection.on('connection.stateChange', (stateChange: any) => {
+        console.log(`🔄 Ably state: ${stateChange.previous} → ${stateChange.current}`);
+      });
+    } else {
+      console.log('📝 Using REST client - no connection events available');
+      // For REST clients, just mark as connected
       this.connectionStateSubject.next(ConnectionState.CONNECTED);
       this.lastSuccessfulConnection = new Date();
       this.reconnectAttempts = 0;
       this.clearTimeouts();
-    });
-
-    // Connection lost
-    pusher.connection.bind('disconnected', () => {
-      console.log('💔 Pusher connection lost');
-      this.connectionStateSubject.next(ConnectionState.DISCONNECTED);
-      this.scheduleReconnect();
-    });
-
-    // Connection errors
-    pusher.connection.bind('error', (error: any) => {
-      console.error('❌ Pusher connection error:', error);
-
-      if (error?.error?.data?.code) {
-        console.error('❌ Error code:', error.error.data.code);
-        console.error('❌ Error message:', error.error.data.message);
-      }
-
-      if (this.isUnrecoverableError(error)) {
-        console.error('❌ Unrecoverable error detected');
-        this.connectionStateSubject.next(ConnectionState.FAILED);
-        return;
-      }
-
-      this.handleConnectionFailure();
-    });
-
-    // State changes
-    pusher.connection.bind('state_change', (states: any) => {
-      console.log(`🔄 Pusher state: ${states.previous} → ${states.current}`);
-    });
-
-    // Auth success/failure for private channels
-    pusher.connection.bind('pusher:signin_success', (data: any) => {
-      console.log('✅ Private channel authentication successful:', data);
-    });
-
-    pusher.connection.bind('pusher:error', (error: any) => {
-      console.error('❌ Pusher error:', error);
-    });
+    }
   }
 
   private isUnrecoverableError(error: any): boolean {
@@ -305,7 +321,7 @@ export class WebSocketService implements OnDestroy {
   }
 
   disconnect(): void {
-    console.log('🔌 Disconnecting Pusher');
+    console.log('🔌 Disconnecting Ably');
 
     this.clearTimeouts();
     this.clearChannels();
@@ -323,10 +339,31 @@ export class WebSocketService implements OnDestroy {
     this.reconnectAttempts = 0;
   }
 
-  joinPrivateChannel(channelName: string): any {
-    if (!this.isConnected) {
-      console.error('❌ Cannot join channel - Pusher not connected');
-      throw new Error('Pusher not connected');
+  async joinPrivateChannel(channelName: string): Promise<any> {
+    // Validate connection first
+    if (!this.echo || !this.echo.connector || !this.echo.connector.ably) {
+      console.log('⏳ Waiting for complete WebSocket setup before joining channel...');
+
+      const maxWaitTime = 15000; // 15 seconds
+      const startTime = Date.now();
+
+      while ((Date.now() - startTime) < maxWaitTime) {
+        // Wait for both connection state and actual client
+        if (this.isConnected && this.echo && this.echo.connector && this.echo.connector.ably) {
+          // Additional check: make sure Ably connection is actually connected
+          const ably = this.echo.connector.ably;
+          if (ably.connection && ably.connection.state === 'connected') {
+            console.log('✅ WebSocket and Ably client fully ready');
+            break;
+          }
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      if (!this.isConnected || !this.echo || !this.echo.connector) {
+        console.error('❌ Cannot join channel - WebSocket connection not ready');
+        throw new Error('WebSocket connection not ready');
+      }
     }
 
     if (this.channels.has(channelName)) {
@@ -337,31 +374,122 @@ export class WebSocketService implements OnDestroy {
     try {
       console.log(`📢 Joining private channel: ${channelName}`);
 
-      const channel = this.echo.private(channelName);
-      this.channels.set(channelName, channel);
-
-      // Try to add global event listener for debugging (if available)
-      try {
-        if (typeof channel.bind_global === 'function') {
-          channel.bind_global((eventName: string, data: any) => {
-            console.log('🎉 RAW EVENT RECEIVED:', eventName, data);
-          });
-        } else {
-          console.log('📋 bind_global not available, using specific event listeners');
-        }
-      } catch (error) {
-        console.log('📋 Could not set up global listener:', error);
+      // Additional safety check - ensure Echo is properly initialized
+      if (!this.echo.connector || !this.echo.connector.ably) {
+        throw new Error('Echo connector not ready');
       }
 
-      // Setup channel event handlers
-      channel.subscribed(() => {
-        console.log(`✅ Successfully subscribed to channel: ${channelName}`);
+      console.log('🔍 Echo connector state:', {
+        hasConnector: !!this.echo.connector,
+        hasAbly: !!this.echo.connector?.ably,
+        ablyState: this.echo.connector?.ably?.connection?.state,
+        connectorKeys: this.echo.connector ? Object.keys(this.echo.connector) : []
       });
 
-      channel.error((error: any) => {
-        console.error(`❌ Channel error for ${channelName}:`, error);
-        this.channels.delete(channelName);
-      });
+      // Try to create the channel with detailed error handling
+      let channel: any;
+      try {
+        console.log('🔧 Attempting to create private channel...');
+        channel = this.echo.private(channelName);
+        console.log('✅ Private channel created successfully');
+      } catch (echoError) {
+        console.error('❌ Echo.private() failed:', echoError);
+        console.log('🔄 Falling back to direct Ably channel creation...');
+        
+        // Fallback: Use Ably client directly
+        try {
+          const ablyClient = this.echo.connector.ably;
+          // FIXED: Use colon format to match backend broadcasting
+          const privateChannelName = `private:${channelName}`;
+          
+          console.log(`🔧 Creating Ably channel directly: ${privateChannelName}`);
+          console.log(`🔍 Backend broadcasting to: ${privateChannelName}`);
+          const ablyChannel = ablyClient.channels.get(privateChannelName);
+          
+          // Create a wrapper object that mimics Echo's channel API
+          channel = {
+            listen: (eventName: string, callback: Function) => {
+              console.log(`👂 Setting up Ably listener for: ${eventName}`);
+              ablyChannel.subscribe(eventName, callback);
+            },
+            subscribed: (callback: Function) => {
+              ablyChannel.on('attached', callback);
+            },
+            error: (callback: Function) => {
+              ablyChannel.on('failed', callback);
+            },
+            _ablyChannel: ablyChannel // Keep reference to original
+          };
+          
+          // DEBUG: Listen to ALL events to see what the backend is actually sending
+          ablyChannel.subscribe((message: any) => {
+            console.log('🎯 DEBUG: Raw message received on channel:', {
+              channel: ablyChannel.name,
+              name: message.name,
+              data: message.data,
+              timestamp: message.timestamp,
+              allChannels: Object.keys(ablyClient.channels.all || {}),
+              connectionId: ablyClient.connection?.id
+            });
+          });
+          
+          // Also try listening on different channel name variations
+          const alternativeChannels = [
+            channelName, // chat-room.3
+            `private-${channelName}`, // private-chat-room.3 
+            channelName.replace('chat-room', 'chatroom'), // chatroom.3
+            `private-${channelName.replace('chat-room', 'chatroom')}` // private-chatroom.3
+          ];
+          
+          console.log('🔍 Setting up listeners on alternative channels:', alternativeChannels);
+          alternativeChannels.forEach(altChannelName => {
+            const altChannel = ablyClient.channels.get(altChannelName);
+            altChannel.subscribe((message: any) => {
+              console.log(`🎯 DEBUG: Message on alternative channel ${altChannelName}:`, {
+                channel: altChannelName,
+                name: message.name,
+                data: message.data,
+                timestamp: message.timestamp
+              });
+            });
+          });
+          
+          console.log('✅ Direct Ably channel created successfully');
+        } catch (ablyError) {
+          console.error('❌ Direct Ably channel creation also failed:', ablyError);
+          throw echoError; // Throw original error
+        }
+      }
+      this.channels.set(channelName, channel);
+
+      // Debug: listen to all events (if supported)
+      if (typeof channel.listen === 'function') {
+        console.log(`👂 Listening on ${channelName} for events...`);
+        channel.listen('.error', (e: any) => {
+          console.error(`❌ Channel-level error on ${channelName}:`, e);
+          this.channels.delete(channelName);
+        });
+      }
+
+      // Setup Ably-level channel monitoring
+      const ably = this.echo?.connector?.ably;
+      if (ably) {
+        // For direct Ably channels, use the wrapped channel
+        const ablyChannelName = channel._ablyChannel ? 
+          (channel._ablyChannel.name || `private:${channelName}`) : 
+          channelName;
+          
+        const ablyChannel = ably.channels.get(ablyChannelName);
+        if (ablyChannel) {
+          ablyChannel.on('failed', (err: any) => {
+            console.error(`❌ Ably reported failed channel: ${ablyChannelName}`, err);
+            this.channels.delete(channelName);
+          });
+          ablyChannel.on('attached', () => {
+            console.log(`✅ Ably attached to channel: ${ablyChannelName}`);
+          });
+        }
+      }
 
       return channel;
     } catch (error) {
@@ -369,6 +497,7 @@ export class WebSocketService implements OnDestroy {
       throw error;
     }
   }
+
 
   leaveChannel(channelName: string): void {
     if (!this.echo || !this.channels.has(channelName)) {
@@ -415,7 +544,12 @@ export class WebSocketService implements OnDestroy {
   }
 
   get isConnected(): boolean {
-    return this.connectionState === ConnectionState.CONNECTED;
+    return (
+      this.connectionState === ConnectionState.CONNECTED &&
+      this.echo !== null &&
+      this.echo.connector &&
+      this.echo.connector.ably
+    );
   }
 
   get isConnecting(): boolean {
@@ -441,7 +575,7 @@ export class WebSocketService implements OnDestroy {
       reconnectAttempts: this.reconnectAttempts,
       lastConnection: this.lastSuccessfulConnection,
       activeChannels: this.activeChannelCount,
-      socketId: this.echo?.connector?.pusher?.connection?.socket_id,
+      socketId: this.echo?.connector?.ably?.connection?.id,
     };
   }
 
@@ -460,7 +594,7 @@ export class WebSocketService implements OnDestroy {
     try {
       console.log('🔐 Testing authentication manually...');
 
-      const response = await fetch(environment.pusher.authEndpoint, {
+      const response = await fetch(environment.ably.authEndpoint, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
