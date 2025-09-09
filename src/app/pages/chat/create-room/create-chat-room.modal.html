@@ -1,0 +1,289 @@
+<!-- frontend/src/app/pages/chat/create-room/create-chat-room.modal.html -->
+<ion-header class="modal-header">
+  <ion-toolbar class="header-toolbar">
+    <ion-title class="header-title">Create Chat Room</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button fill="clear" class="close-button" (click)="dismiss()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-content">
+  <div class="create-room-container">
+    <!-- Header Section -->
+    <div class="create-room-header">
+      <div class="room-icon">
+        <ion-icon name="chatbubble-outline"></ion-icon>
+      </div>
+      <h2 class="room-title">New Chat Room</h2>
+      <p class="room-subtitle">
+        Create a space for {{ family?.name || "your family" }} to connect
+      </p>
+    </div>
+
+    <!-- Chat Room Form -->
+    <form
+      *ngIf="chatRoomForm"
+      [formGroup]="chatRoomForm"
+      (ngSubmit)="onCreateRoom()"
+      class="create-room-form"
+    >
+      <!-- Basic Info Section -->
+      <div class="form-section">
+        <h3 class="section-title">Room Details</h3>
+
+        <!-- Room Name -->
+        <div class="input-group" *ngIf="!isDirectMessage()">
+          <ion-item class="custom-item" lines="none">
+            <ion-icon
+              name="create-outline"
+              slot="start"
+              class="input-icon"
+            ></ion-icon>
+            <ion-input
+              type="text"
+              placeholder="Enter room name"
+              formControlName="name"
+              class="custom-input"
+              [appValidationError]="isSubmitted()"
+            >
+            </ion-input>
+          </ion-item>
+        </div>
+
+        <!-- Direct Message Info -->
+        <div class="direct-message-info" *ngIf="isDirectMessage()">
+          <div class="info-card">
+            <ion-icon name="person-circle-outline" class="info-icon"></ion-icon>
+            <div class="info-content">
+              <h3>Direct Message</h3>
+              <p>
+                Select one family member to start a private conversation. The
+                conversation name will be automatically generated.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Room Description -->
+        <div class="input-group">
+          <ion-item class="custom-item textarea-item" lines="none">
+            <ion-icon
+              name="chatbubble-outline"
+              slot="start"
+              class="input-icon"
+            ></ion-icon>
+            <ion-textarea
+              placeholder="Room description (optional)"
+              formControlName="description"
+              class="custom-textarea"
+              rows="2"
+              maxlength="200"
+              [appValidationError]="isSubmitted()"
+            >
+            </ion-textarea>
+          </ion-item>
+
+          <div class="character-count">
+            {{ chatRoomForm?.get("description")?.value?.length || 0 }}/200
+          </div>
+        </div>
+      </div>
+
+      <!-- Room Type Section -->
+      <div class="form-section">
+        <h3 class="section-title">Room Type</h3>
+
+        <ion-list class="room-type-list">
+          @for (type of roomTypes; track type.value) {
+            <ion-item
+              class="room-type-option"
+              [class.selected]="chatRoomForm?.get('type')?.value === type.value"
+              (click)="chatRoomForm?.patchValue({ type: type.value })"
+              button
+            >
+              <div class="room-type-content">
+                <div class="room-type-header">
+                  <div class="room-type-icon">
+                    <ion-icon [name]="type.icon"></ion-icon>
+                  </div>
+                  <div class="room-type-info">
+                    <h4 class="room-type-title">{{ type.label }}</h4>
+                    <p class="room-type-description">{{ type.description }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <ion-icon
+                [name]="
+                chatRoomForm?.get('type')?.value === type.value
+                  ? 'radio-button-on-outline'
+                  : 'radio-button-off-outline'
+              "
+                slot="end"
+                class="selection-icon"
+              >
+              </ion-icon>
+            </ion-item>
+          }
+        </ion-list>
+      </div>
+
+      <!-- Privacy Section -->
+      <div class="form-section">
+        <h3 class="section-title">Privacy Settings</h3>
+
+        <div class="privacy-section">
+          <ion-item class="privacy-item" lines="none">
+            <div class="privacy-content">
+              <div class="privacy-header">
+                <div class="privacy-icon">
+                  <ion-icon name="lock-closed-outline"></ion-icon>
+                </div>
+                <div class="privacy-info">
+                  <h4 class="privacy-title">Private Room</h4>
+                  <p class="privacy-description">
+                    Only selected members can see and join this room
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <ion-checkbox
+              formControlName="isPrivate"
+              slot="end"
+              class="privacy-checkbox"
+            >
+            </ion-checkbox>
+          </ion-item>
+        </div>
+      </div>
+
+      <!-- Members Section -->
+      <div class="form-section">
+        <div class="members-header">
+          <h3 class="section-title">
+            {{ isDirectMessage() ? "Select Member" : "Add Members" }}
+          </h3>
+          <div class="members-info">
+            <span class="selected-count">
+              {{ selectedCount }}/{{ isDirectMessage() ? "1" : totalMembers }}
+              selected
+            </span>
+            <ion-button
+              fill="clear"
+              size="small"
+              class="toggle-all-btn"
+              (click)="toggleAllMembers()"
+              *ngIf="!isDirectMessage()"
+            >
+              {{
+                selectedCount === totalMembers ? "Deselect All" : "Select All"
+              }}
+            </ion-button>
+          </div>
+        </div>
+
+        <div class="members-list">
+          @for (member of availableMembers(); track member.userId) {
+            <div class="member-item">
+              <div class="member-info">
+                <ion-avatar class="member-avatar">
+                  <img
+                    [src]="
+                    member.user?.avatar ||
+                    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+                  "
+                    [alt]="member.user?.name"
+                  />
+                </ion-avatar>
+                <div class="member-details">
+                  <h4 class="member-name">
+                    {{ member.nickname || member.user?.name }}
+                  </h4>
+                  <p class="member-role">
+                    {{ member.relationship || "Family Member" }}
+                  </p>
+                </div>
+              </div>
+
+              <ion-checkbox
+                [checked]="isMemberSelected(member.userId)"
+                (ionChange)="onMemberToggle(member.userId, $event)"
+                class="member-checkbox"
+              >
+              </ion-checkbox>
+            </div>
+          }
+        </div>
+
+        @if (selectedMembers().length === 0) {
+          <div class="validation-error">
+            <p class="error-message">
+              {{
+                isDirectMessage()
+                  ? "Please select one member for the direct message."
+                  : "Please select at least one member for the chat room."
+              }}
+            </p>
+          </div>
+        }
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <ion-button
+          expand="block"
+          type="submit"
+          class="create-button"
+          [disabled]="
+            !chatRoomForm?.valid ||
+            selectedMembers().length === 0 ||
+            isCreating()
+          "
+        >
+          <ion-icon
+            name="add-outline"
+            slot="start"
+            *ngIf="!isCreating()"
+          ></ion-icon>
+          <ion-icon
+            name="hourglass-outline"
+            slot="start"
+            *ngIf="isCreating()"
+          ></ion-icon>
+          {{ isCreating() ? "Creating..." : "Create Chat Room" }}
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="clear"
+          class="cancel-button"
+          (click)="dismiss()"
+        >
+          Cancel
+        </ion-button>
+      </div>
+    </form>
+
+    <!-- Info Section -->
+    <div class="info-section">
+      <div class="info-card">
+        <ion-icon
+          name="information-circle-outline"
+          class="info-icon"
+        ></ion-icon>
+        <div class="info-content">
+          <h4 class="info-title">Room Settings</h4>
+          <p class="info-text">
+            You can change room settings, add or remove members, and manage
+            permissions after creating the room.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

@@ -16,7 +16,7 @@
     </ion-title>
 
     <ion-buttons slot="end">
-      <ion-button class="notification-button">
+      <ion-button class="notification-button" [disabled]="true">
         <ion-icon name="notifications-outline"></ion-icon>
       </ion-button>
 
@@ -116,28 +116,28 @@
                   <span class="action-title">Family Chat</span>
                 </div>
 
-                <div class="action-item" (click)="openFamilyPhotos()">
+                <div class="action-item disabled">
                   <div class="action-icon photos">
                     <ion-icon name="camera-outline"></ion-icon>
                   </div>
                   <span class="action-title">Photos</span>
                 </div>
 
-                <div class="action-item" (click)="openFamilyEvents()">
+                <div class="action-item disabled">
                   <div class="action-icon events">
                     <ion-icon name="calendar-outline"></ion-icon>
                   </div>
                   <span class="action-title">Events</span>
                 </div>
 
-                <div class="action-item" (click)="openFamilyLocations()">
+                <div class="action-item disabled">
                   <div class="action-icon location">
                     <ion-icon name="location-outline"></ion-icon>
                   </div>
                   <span class="action-title">Locations</span>
                 </div>
 
-                <div class="action-item" (click)="openFamilyMemories()">
+                <div class="action-item disabled">
                   <div class="action-icon memories">
                     <ion-icon name="heart-outline"></ion-icon>
                   </div>
@@ -157,32 +157,74 @@
           </ion-card>
 
           <!-- Join Code (if owner/moderator) -->
-          @if (canManageFamily() && family()!.joinCode) {
+          @if (canManageFamily()) {
             <ion-card class="join-code-card">
               <ion-card-header>
-                <ion-card-title class="section-title">Family Join Code</ion-card-title>
+                <ion-card-title class="section-title">
+                  Family Join Code
+                  @if (isJoinCodeLoading()) {
+                    <ion-spinner size="small" name="crescent"></ion-spinner>
+                  }
+                </ion-card-title>
               </ion-card-header>
               <ion-card-content class="join-code-content">
-                <div class="join-code-display">
-                  <div class="join-code-value">{{ family()!.joinCode }}</div>
-                  <div class="join-code-actions">
-                    <ion-button fill="clear" size="small" (click)="copyJoinCode()">
-                      <ion-icon name="copy-outline" slot="start"></ion-icon>
-                      Copy
-                    </ion-button>
-                    <ion-button fill="clear" size="small" (click)="shareJoinCode()">
-                      <ion-icon name="share-outline" slot="start"></ion-icon>
-                      Share
-                    </ion-button>
-                    <ion-button fill="clear" size="small" (click)="regenerateJoinCode()">
-                      <ion-icon name="refresh-outline" slot="start"></ion-icon>
-                      New Code
-                    </ion-button>
+                @if (hasJoinCode()) {
+                  <div class="join-code-display">
+                    <div class="join-code-value">{{ joinCode() }}</div>
+                    <div class="join-code-actions">
+                      <ion-button 
+                        fill="clear" 
+                        size="small" 
+                        (click)="copyJoinCode()"
+                        [disabled]="isJoinCodeLoading()">
+                        <ion-icon name="copy-outline" slot="start"></ion-icon>
+                        Copy
+                      </ion-button>
+                      <ion-button 
+                        fill="clear" 
+                        size="small" 
+                        (click)="shareJoinCode()"
+                        [disabled]="isJoinCodeLoading()">
+                        <ion-icon name="share-outline" slot="start"></ion-icon>
+                        Share
+                      </ion-button>
+                      <ion-button 
+                        fill="clear" 
+                        size="small" 
+                        (click)="regenerateJoinCode()"
+                        [disabled]="isJoinCodeLoading()">
+                        @if (isJoinCodeLoading()) {
+                          <ion-spinner size="small" name="crescent" slot="start"></ion-spinner>
+                        } @else {
+                          <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                        }
+                        New Code
+                      </ion-button>
+                    </div>
                   </div>
-                </div>
-                <p class="join-code-help">
-                  Share this code with family members to let them join your family.
-                </p>
+                  <p class="join-code-help">
+                    Share this code with family members to let them join your family.
+                  </p>
+                } @else {
+                  <div class="no-join-code">
+                    <div class="no-join-code-content">
+                      <ion-icon name="key-outline"></ion-icon>
+                      <p class="no-join-code-text">No join code available</p>
+                      <ion-button 
+                        fill="outline" 
+                        size="small" 
+                        (click)="regenerateJoinCode()"
+                        [disabled]="isJoinCodeLoading()">
+                        @if (isJoinCodeLoading()) {
+                          <ion-spinner size="small" name="crescent" slot="start"></ion-spinner>
+                        } @else {
+                          <ion-icon name="add-outline" slot="start"></ion-icon>
+                        }
+                        Generate Code
+                      </ion-button>
+                    </div>
+                  </div>
+                }
               </ion-card-content>
             </ion-card>
           }

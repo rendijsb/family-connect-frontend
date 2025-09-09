@@ -82,17 +82,17 @@
 
         <!-- Social Login Buttons -->
         <div class="social-buttons">
-          <ion-button fill="outline" class="social-button google" (click)="onSocialLogin('google')">
+          <ion-button fill="outline" class="social-button google" [disabled]="true" (click)="onSocialLogin('google')">
             <ion-icon name="logo-google" slot="start"></ion-icon>
             Google
           </ion-button>
 
-          <ion-button fill="outline" class="social-button apple" (click)="onSocialLogin('apple')">
+          <ion-button fill="outline" class="social-button apple" [disabled]="true" (click)="onSocialLogin('apple')">
             <ion-icon name="logo-apple" slot="start"></ion-icon>
             Apple
           </ion-button>
 
-          <ion-button fill="outline" class="social-button facebook" (click)="onSocialLogin('facebook')">
+          <ion-button fill="outline" class="social-button facebook" [disabled]="true" (click)="onSocialLogin('facebook')">
             <ion-icon name="logo-facebook" slot="start"></ion-icon>
             Facebook
           </ion-button>

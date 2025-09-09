@@ -503,10 +503,19 @@ export class ToastService {
     header: string,
     buttons: ActionSheetButton[]
   ): Promise<void> {
+    const wrappedButtons = buttons.map((btn) => ({
+      ...btn,
+      handler: () => {
+        const result = btn.handler ? btn.handler() : true;
+        return result === false ? false : true;
+      },
+    }));
+
     const actionSheet = await this.actionSheetController.create({
       header,
       buttons: [
         ...buttons,
+        ...wrappedButtons,
         {
           text: 'Cancel',
           role: 'cancel',

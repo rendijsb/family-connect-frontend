@@ -327,6 +327,20 @@ ion-card-content {
     transform: scale(0.95);
     background: rgba(255, 255, 255, 0.05);
   }
+
+  &.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+
+    .action-icon {
+      opacity: 0.5;
+    }
+
+    .action-title {
+      color: #71717a;
+    }
+  }
 }
 
 .action-icon {
@@ -481,6 +495,45 @@ ion-card-content {
   text-align: center;
   margin: 0;
   line-height: 1.4;
+}
+
+.no-join-code {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.no-join-code-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+
+  ion-icon {
+    font-size: 48px;
+    color: #6b7280;
+    margin-bottom: 4px;
+  }
+}
+
+.no-join-code-text {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 0;
+  line-height: 1.4;
+}
+
+// Section title with spinner
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  ion-spinner {
+    --color: #dc2626;
+  }
 }
 
 // Activity Styles

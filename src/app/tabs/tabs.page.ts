@@ -4,6 +4,7 @@ import { IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel } from '@ionic/angu
 import { addIcons } from 'ionicons';
 import { homeOutline, peopleOutline, chatbubbleOutline, cameraOutline, personOutline } from 'ionicons/icons';
 import { Subject, takeUntil } from 'rxjs';
+import {ChatService} from '../core/services/chat/chat.service';
 
 // TODO: Import chat service when implemented
 // import { ChatService } from '../core/services/chat/chat.service';
@@ -17,11 +18,9 @@ import { Subject, takeUntil } from 'rxjs';
 })
 export class TabsPage implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
+  private readonly chatService = inject(ChatService);
 
-  // TODO: Inject chat service when implemented
-  // private readonly chatService = inject(ChatService);
-
-  unreadMessages = 0;
+  readonly unreadMessages = this.chatService.totalUnreadCount;
 
   constructor() {
     addIcons({ homeOutline, peopleOutline, chatbubbleOutline, cameraOutline, personOutline });

@@ -242,12 +242,12 @@
             </div>
 
             <div class="social-buttons">
-              <ion-button fill="outline" class="social-button google" (click)="onSocialRegister('google')">
+              <ion-button fill="outline" class="social-button google" [disabled]="true" (click)="onSocialRegister('google')">
                 <ion-icon name="logo-google" slot="start"></ion-icon>
                 Google
               </ion-button>
 
-              <ion-button fill="outline" class="social-button apple" (click)="onSocialRegister('apple')">
+              <ion-button fill="outline" class="social-button apple" [disabled]="true" (click)="onSocialRegister('apple')">
                 <ion-icon name="logo-apple" slot="start"></ion-icon>
                 Apple
               </ion-button>

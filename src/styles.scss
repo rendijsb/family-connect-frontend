@@ -108,6 +108,35 @@ ion-button {
   font-weight: 600;
   text-transform: none;
   letter-spacing: 0.025em;
+
+  /* Disabled button styling */
+  &.button-disabled,
+  &:disabled,
+  &[disabled] {
+    --background: rgba(107, 114, 128, 0.3) !important;
+    --background-activated: rgba(107, 114, 128, 0.3) !important;
+    --background-hover: rgba(107, 114, 128, 0.3) !important;
+    --background-focused: rgba(107, 114, 128, 0.3) !important;
+    --color: rgba(255, 255, 255, 0.4) !important;
+    --border-color: rgba(107, 114, 128, 0.2) !important;
+    box-shadow: none !important;
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    transform: none !important;
+    
+    /* Remove any hover effects */
+    &:hover {
+      transform: none !important;
+      box-shadow: none !important;
+      --background: rgba(107, 114, 128, 0.3) !important;
+    }
+    
+    /* Ensure icons in disabled buttons are also dimmed */
+    ion-icon {
+      opacity: 0.5 !important;
+    }
+  }
 }
 
 ion-fab-button {
@@ -115,6 +144,23 @@ ion-fab-button {
   --color: white;
   --border-radius: 50%;
   box-shadow: 0 8px 32px rgba(220, 38, 38, 0.4);
+
+  /* Disabled FAB button styling */
+  &.button-disabled,
+  &:disabled,
+  &[disabled] {
+    --background: rgba(107, 114, 128, 0.3) !important;
+    --color: rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    transform: none !important;
+    
+    ion-icon {
+      opacity: 0.5 !important;
+    }
+  }
 }
 
 ion-tab-bar {
@@ -1058,16 +1104,16 @@ ion-label {
 ion-button {
   --border-radius: 12px !important;
 
-  &.button-fill-solid {
+  &.button-fill-solid:not(.button-disabled):not(:disabled):not([disabled]) {
     --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
   }
 
-  &:hover {
+  &:hover:not(.button-disabled):not(:disabled):not([disabled]) {
     transform: translateY(-1px) !important;
     --box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
   }
 
-  &:active {
+  &:active:not(.button-disabled):not(:disabled):not([disabled]) {
     transform: translateY(0) !important;
   }
 }

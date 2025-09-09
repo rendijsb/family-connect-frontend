@@ -74,17 +74,12 @@ export class FamilyService {
       this.apiUrlService.getUrl('families'),
       familyData
     ).pipe(
-      tap(async response => {
+      tap(response => {
         const family = this.normalizeFamilyData(response.data);
-
-        const currentFamilies = this._families.value;
-        this._families.next([...currentFamilies, family]);
-
+        this._families.next([...this._families.value, family]);
         this._currentFamily.next(family);
-
-        this._isLoading.set(false);
       }),
-      finalize(() => this._isLoading.set(false)),
+      finalize(() => this._isLoading.set(false))
     );
   }
 
@@ -95,22 +90,15 @@ export class FamilyService {
       this.apiUrlService.getUrl(`families/${slug}`),
       familyData
     ).pipe(
-      tap(async response => {
+      tap(response => {
         const family = this.normalizeFamilyData(response.data);
-
-        const currentFamilies = this._families.value;
-        const updatedFamilies = currentFamilies.map(f =>
-          f.slug === slug ? family : f
-        );
-        this._families.next(updatedFamilies);
-
+        this._families.next(this._families.value.map(f => f.slug === slug ? family : f));
+        
         if (this._currentFamily.value?.slug === slug) {
           this._currentFamily.next(family);
         }
-
-        this._isLoading.set(false);
       }),
-      finalize(() => this._isLoading.set(false)),
+      finalize(() => this._isLoading.set(false))
     );
   }
 
@@ -120,18 +108,13 @@ export class FamilyService {
     return this.http.delete<ApiResponse<void>>(
       this.apiUrlService.getUrl(`families/${slug}`)
     ).pipe(
-      tap(async () => {
-        const currentFamilies = this._families.value;
-        const filteredFamilies = currentFamilies.filter(family => family.slug !== slug);
-        this._families.next(filteredFamilies);
-
+      tap(() => {
+        this._families.next(this._families.value.filter(family => family.slug !== slug));
         if (this._currentFamily.value?.slug === slug) {
           this._currentFamily.next(null);
         }
-
-        this._isLoading.set(false);
       }),
-      finalize(() => this._isLoading.set(false)),
+      finalize(() => this._isLoading.set(false))
     );
   }
 
@@ -142,15 +125,11 @@ export class FamilyService {
       this.apiUrlService.getUrl('families/join'),
       joinData
     ).pipe(
-      tap(async response => {
+      tap(response => {
         const family = this.normalizeFamilyData(response.data);
-
-        const currentFamilies = this._families.value;
-        this._families.next([...currentFamilies, family]);
-
-        this._isLoading.set(false);
+        this._families.next([...this._families.value, family]);
       }),
-      finalize(() => this._isLoading.set(false)),
+      finalize(() => this._isLoading.set(false))
     );
   }
 
@@ -161,18 +140,13 @@ export class FamilyService {
       this.apiUrlService.getUrl(`families/${slug}/leave`),
       {}
     ).pipe(
-      tap(async () => {
-        const currentFamilies = this._families.value;
-        const filteredFamilies = currentFamilies.filter(family => family.slug !== slug);
-        this._families.next(filteredFamilies);
-
+      tap(() => {
+        this._families.next(this._families.value.filter(family => family.slug !== slug));
         if (this._currentFamily.value?.slug === slug) {
           this._currentFamily.next(null);
         }
-
-        this._isLoading.set(false);
       }),
-      finalize(() => this._isLoading.set(false)),
+      finalize(() => this._isLoading.set(false))
     );
   }
 
@@ -181,14 +155,16 @@ export class FamilyService {
       this.apiUrlService.getUrl(`families/${slug}/generate-code`),
       {}
     ).pipe(
-      tap(async response => {
-        const currentFamily = this._currentFamily.value;
-        if (currentFamily?.slug === slug) {
-          this._currentFamily.next({
-            ...currentFamily,
-            joinCode: response.data.joinCode
-          });
+      tap(response => {
+        const { joinCode } = response.data;
+        
+        if (this._currentFamily.value?.slug === slug) {
+          this._currentFamily.next({ ...this._currentFamily.value, joinCode });
         }
+        
+        this._families.next(this._families.value.map(f => 
+          f.slug === slug ? { ...f, joinCode } : f
+        ));
       }),
     );
   }

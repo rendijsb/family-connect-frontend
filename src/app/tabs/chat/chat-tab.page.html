@@ -1,0 +1,167 @@
+<!-- frontend/src/app/tabs/chat/chat-tab.page.html -->
+<ion-header [translucent]="true" class="chat-tab-header">
+  <ion-toolbar class="header-toolbar">
+    <ion-title class="header-title">
+      <div class="title-content">
+        <span class="page-title">Chat</span>
+        @if (totalUnreadCount() > 0) {
+          <ion-badge class="unread-badge">{{ totalUnreadCount() > 99 ? '99+' : totalUnreadCount() }}</ion-badge>
+        }
+      </div>
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button class="add-button" (click)="createChatRoom()">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="chat-tab-content">
+  <!-- Refresher -->
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content
+      pulling-icon="arrow-down-outline"
+      pulling-text="Pull to refresh"
+      refreshing-spinner="crescent"
+      refreshing-text="Refreshing...">
+    </ion-refresher-content>
+  </ion-refresher>
+
+  <div class="chat-container content-with-header">
+
+    <!-- Loading State -->
+    @if (isLoading() && allChatRooms().length === 0) {
+      <div class="loading-container">
+        @for (i of [1,2,3]; track i) {
+          <div class="skeleton-family-section">
+            <ion-skeleton-text animated class="skeleton-family-header"></ion-skeleton-text>
+            @for (j of [1,2]; track j) {
+              <div class="skeleton-room">
+                <ion-skeleton-text animated style="width: 48px; height: 48px; border-radius: 50%;"></ion-skeleton-text>
+                <div class="skeleton-content">
+                  <ion-skeleton-text animated style="width: 70%; height: 16px;"></ion-skeleton-text>
+                  <ion-skeleton-text animated style="width: 50%; height: 14px;"></ion-skeleton-text>
+                </div>
+                <ion-skeleton-text animated style="width: 20px; height: 12px;"></ion-skeleton-text>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading() && allChatRooms().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">
+          <ion-icon name="chatbubble-outline"></ion-icon>
+        </div>
+        <h2 class="empty-title">No Chat Rooms</h2>
+        <p class="empty-subtitle">
+          You don't have access to any chat rooms yet. Join a family or create a new chat room to get started.
+        </p>
+        <ion-button class="empty-action-btn" (click)="createChatRoom()">
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+          Create Chat Room
+        </ion-button>
+      </div>
+    }
+
+    <!-- Family Chat Sections -->
+    @if (!isLoading() && allChatRooms().length > 0) {
+      <div class="families-list">
+        @for (familySection of allChatRooms(); track trackByFamilyId($index, familySection)) {
+          <div class="family-section">
+
+            <!-- Family Header -->
+            <div class="family-header" (click)="openFamilyChat(familySection.family)">
+              <div class="family-info">
+                <div class="family-avatar">
+                  <ion-icon name="home-outline"></ion-icon>
+                </div>
+                <div class="family-details">
+                  <h3 class="family-name">{{ familySection.family.name }}</h3>
+                  <span class="room-count">{{ familySection.rooms.length }} rooms</span>
+                </div>
+              </div>
+
+              <div class="family-actions">
+                @if (getTotalUnreadForFamily(familySection.rooms) > 0) {
+                  <ion-badge class="family-unread-badge">
+                    {{ getTotalUnreadForFamily(familySection.rooms) > 99 ? '99+' : getTotalUnreadForFamily(familySection.rooms) }}
+                  </ion-badge>
+                }
+                <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
+              </div>
+            </div>
+
+            <!-- Chat Rooms List -->
+            @if (familySection.rooms.length > 0) {
+              <div class="rooms-list">
+                @for (room of familySection.rooms.slice(0, 3); track trackByRoomId($index, room)) {
+                  <div
+                    class="room-item"
+                    [class.has-unread]="room.unreadCount && room.unreadCount > 0"
+                    (click)="openChatRoom(familySection.family, room)">
+
+                    <div class="room-avatar" [class]="'type-' + room.type">
+                      <ion-icon [name]="getChatRoomTypeIcon(room.type)"></ion-icon>
+                    </div>
+
+                    <div class="room-details">
+                      <div class="room-header">
+                        <h4 class="room-name">{{ room.name }}</h4>
+                        @if (room.lastMessageAt) {
+                          <span class="last-message-time">{{ formatMessageTime(room.lastMessageAt) }}</span>
+                        }
+                      </div>
+
+                      <div class="last-message">
+                        <span class="message-sender">{{ getLastMessageSender(room) }}</span>
+                        <span class="message-text">{{ getLastMessagePreview(room) }}</span>
+                      </div>
+                    </div>
+
+                    @if (room.unreadCount && room.unreadCount > 0) {
+                      <ion-badge class="room-unread-badge">
+                        {{ room.unreadCount > 99 ? '99+' : room.unreadCount }}
+                      </ion-badge>
+                    }
+                  </div>
+                }
+
+                <!-- Show More Button -->
+                @if (familySection.rooms.length > 3) {
+                  <div class="show-more-item" (click)="openFamilyChat(familySection.family)">
+                    <div class="show-more-content">
+                      <ion-icon name="ellipsis-horizontal-outline" class="more-icon"></ion-icon>
+                      <span class="show-more-text">{{ familySection.rooms.length - 3 }} more rooms</span>
+                    </div>
+                    <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="no-rooms">
+                <ion-icon name="chatbubble-outline" class="no-rooms-icon"></ion-icon>
+                <span class="no-rooms-text">No chat rooms in this family</span>
+              </div>
+            }
+
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+
+  <!-- Floating Action Button -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button class="fab-button" (click)="createChatRoom()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>

@@ -1,0 +1,318 @@
+<ion-header [translucent]="true" class="chat-room-header">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-button class="back-button" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title class="header-title">
+      @if (chatRoom()) {
+        <div class="room-info">
+          <div class="room-avatar" [class]="'type-' + chatRoom()!.type">
+            <ion-icon [name]="getChatRoomTypeIcon(chatRoom()!.type)"></ion-icon>
+          </div>
+          <div class="room-details">
+            <span class="room-name">{{ chatRoom()!.name }}</span>
+            <span class="room-members"
+            >{{ getRoomMemberCount(chatRoom()!) }} members</span
+            >
+          </div>
+        </div>
+      }
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button class="info-button" (click)="openRoomInfo()">
+        <ion-icon name="information-circle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="chat-room-content">
+  <!-- Refresher -->
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content
+      pulling-icon="arrow-down-outline"
+      pulling-text="Pull to refresh"
+      refreshing-spinner="crescent"
+      refreshing-text="Loading messages..."
+    >
+    </ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Infinite Scroll for Loading More Messages -->
+  <ion-infinite-scroll
+    threshold="100px"
+    position="top"
+    (ionInfinite)="onInfiniteScroll($event)"
+  >
+    <ion-infinite-scroll-content
+      loading-spinner="crescent"
+      loading-text="Loading more messages..."
+    >
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+  <div class="messages-container content-with-header">
+    <!-- Loading Messages State -->
+    @if (isLoadingMessages() && messages().length === 0) {
+      <div class="loading-messages">
+        @for (i of [1,2,3,4,5]; track i) {
+          <div class="skeleton-message" [class.own]="i % 3 === 0">
+            <div class="skeleton-avatar"></div>
+            <div class="skeleton-bubble">
+              <ion-skeleton-text
+                animated
+                style="width: 80%; height: 14px"
+              ></ion-skeleton-text>
+              <ion-skeleton-text
+                animated
+                style="width: 60%; height: 14px"
+              ></ion-skeleton-text>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Messages List -->
+    @if (messages().length > 0) {
+      <div class="messages-list">
+        @for (message of messages(); track trackByMessageId($index, message); let
+          i = $index) {
+
+          <!-- Date Separator -->
+          @if (shouldShowTimestamp(i)) {
+            <div class="date-separator">
+        <span class="date-text">{{
+            formatMessageDate(message.createdAt)
+          }}</span>
+            </div>
+          }
+
+          <!-- Message Bubble -->
+          <div class="message-wrapper" [class.own]="isCurrentUserMessage(message)">
+            <!-- Avatar (for other users) -->
+            @if (!isCurrentUserMessage(message) && shouldShowAvatar(i)) {
+              <ion-avatar class="message-avatar">
+                <img
+                  [src]="
+              message.user?.avatar ||
+              'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
+            "
+                  [alt]="message.user?.name"
+                />
+              </ion-avatar>
+            }
+
+            <!-- Message Content -->
+            <div class="message-content">
+              <!-- Sender Name (for group chats) -->
+              @if (chatRoom()?.type === ChatRoomTypeEnum.GROUP &&
+              message.user?.name) {
+                <div class="sender-name" [class.own]="isCurrentUserMessage(message)">
+                  {{ isCurrentUserMessage(message) ? "You" : message.user.name }}
+                </div>
+              }
+
+              <!-- Reply Context -->
+              @if (message.replyTo) {
+                <div
+                  class="reply-context"
+                  (click)="scrollToMessage(message.replyTo!)"
+                >
+                  <div class="reply-line"></div>
+                  <div class="reply-content">
+                    <span class="reply-sender">{{ message.replyTo.user?.name }}</span>
+                    <span class="reply-text">{{
+                        getMessagePreview(message.replyTo)
+                      }}</span>
+                  </div>
+                </div>
+              }
+
+              <!-- Message Bubble -->
+              <div
+                class="message-bubble"
+                [attr.data-message-id]="message.id"
+                [class.own]="isCurrentUserMessage(message)"
+                [class.has-reactions]="
+              message.reactions && message.reactions.length > 0
+            "
+                [class.deleted]="message.isDeleted"
+                [class.sending]="message.isSending"
+                [class.failed]="message.sendError"
+                (click)="presentMessageOptions(message, $event)"
+              >
+                <!-- Message Text -->
+                @if (message.type === MessageTypeEnum.TEXT) {
+                  <div class="message-text">{{ message.message }}</div>
+                }
+
+                <!-- System Message -->
+                @if (message.type === MessageTypeEnum.SYSTEM) {
+                  <div class="system-message">
+                    <ion-icon name="information-circle-outline"></ion-icon>
+                    <span>{{ message.message }}</span>
+                  </div>
+                }
+
+                <!-- Media Messages (Placeholder) -->
+                @if (message.type === MessageTypeEnum.IMAGE) {
+                  <div class="media-message">
+                    <ion-icon name="image-outline"></ion-icon>
+                    <span>Photo</span>
+                  </div>
+                } @if (message.type === MessageTypeEnum.VIDEO) {
+                <div class="media-message">
+                  <ion-icon name="videocam-outline"></ion-icon>
+                  <span>Video</span>
+                </div>
+              } @if (message.type === MessageTypeEnum.AUDIO) {
+                <div class="media-message">
+                  <ion-icon name="mic-outline"></ion-icon>
+                  <span>Voice Message</span>
+                </div>
+              } @if (message.type === MessageTypeEnum.FILE) {
+                <div class="media-message">
+                  <ion-icon name="document-outline"></ion-icon>
+                  <span>Document</span>
+                </div>
+              }
+
+                <!-- Message Status -->
+                @if (isCurrentUserMessage(message)) {
+                  <div class="message-status">
+                    <ion-icon
+                      [name]="getMessageStatusIcon(message)"
+                      [class]="'status-' + getMessageStatus(message)"
+                    ></ion-icon>
+                    <span class="message-time">{{
+                        formatMessageTime(message.createdAt)
+                      }}</span>
+                  </div>
+                } @else {
+                  <div class="message-time">
+                    {{ formatMessageTime(message.createdAt) }}
+                  </div>
+                }
+              </div>
+
+              <!-- Message Reactions -->
+              @if (message.reactions && message.reactions.length > 0) {
+                <div class="message-reactions">
+                  @for (emoji of getUniqueReactions(message); track emoji) {
+                    <div
+                      class="reaction-item"
+                      [class.own-reaction]="hasUserReacted(message, emoji)"
+                      (click)="toggleReaction(message, emoji)"
+                    >
+                      <span class="reaction-emoji">{{ emoji }}</span>
+                      <span class="reaction-count">{{
+                          getReactionCount(message, emoji)
+                        }}</span>
+                    </div>
+                  }
+                  <div class="add-reaction-btn" (click)="presentEmojiPicker(message)">
+                    <ion-icon name="add-outline"></ion-icon>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Empty Messages State -->
+    @if (!isLoadingMessages() && messages().length === 0) {
+      <div class="empty-messages">
+        <div class="empty-icon">
+          <ion-icon name="chatbubble-outline"></ion-icon>
+        </div>
+        <h3 class="empty-title">No messages yet</h3>
+        <p class="empty-subtitle">
+          Send the first message to start the conversation!
+        </p>
+      </div>
+    }
+
+    <!-- Typing Indicator -->
+    @if (typingUsersText()) {
+      <div class="typing-indicator">
+        <div class="typing-bubble">
+          <div class="typing-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+        <div class="typing-text">{{ typingUsersText() }}</div>
+      </div>
+    }
+  </div>
+
+  <!-- Message Input Area -->
+  <div class="message-input-container">
+    <!-- Reply Preview -->
+    @if (replyingTo()) {
+      <div class="reply-preview">
+        <div class="reply-content">
+          <div class="reply-header">
+            <ion-icon name="arrow-undo-outline"></ion-icon>
+            <span class="replying-to"
+            >Replying to {{ replyingTo()!.user?.name }}</span
+            >
+            <ion-button fill="clear" size="small" (click)="cancelReply()">
+              <ion-icon name="close-outline"></ion-icon>
+            </ion-button>
+          </div>
+          <div class="reply-message">{{ getMessagePreview(replyingTo()!) }}</div>
+        </div>
+      </div>
+    }
+
+    <!-- Input Bar -->
+    <div class="input-bar">
+      <ion-button
+        fill="clear"
+        class="attachment-btn"
+        (click)="presentAttachmentOptions()"
+      >
+        <ion-icon name="add-circle-outline"></ion-icon>
+      </ion-button>
+
+      <div class="text-input-wrapper">
+        <ion-textarea
+          #messageInput
+          placeholder="Type a message..."
+          [(ngModel)]="messageText"
+          (ionInput)="onMessageInputChange()"
+          (keydown)="onMessageKeyDown($event)"
+          class="message-textarea"
+          rows="1"
+          autoGrow="true"
+          maxlength="1000"
+        >
+        </ion-textarea>
+      </div>
+
+      @if (messageText().trim()) {
+        <ion-button fill="clear" class="send-btn" (click)="sendMessage()">
+          <ion-icon name="send-outline"></ion-icon>
+        </ion-button>
+      } @else {
+        <ion-button
+          fill="clear"
+          class="voice-btn"
+          [class.recording]="isRecording()"
+          (click)="toggleRecording()"
+        >
+          <ion-icon name="mic-outline"></ion-icon>
+        </ion-button>
+      }
+    </div>
+  </div>
+</ion-content>
