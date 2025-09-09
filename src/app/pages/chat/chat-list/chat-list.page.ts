@@ -109,7 +109,26 @@ export class ChatListPage implements OnInit, OnDestroy {
   readonly familyMembers = signal<FamilyMember[]>([]);
   readonly familySlug = signal<string>('');
   readonly searchTerm = signal<string>('');
-  readonly filteredRooms = signal<ChatRoom[]>([]);
+  
+  // Memoized time format cache to prevent change detection issues
+  private timeFormatCache = new Map<string, { value: string; timestamp: number }>();
+
+  // Computed signal that automatically updates when chatRooms or searchTerm change
+  readonly filteredRooms = computed(() => {
+    const rooms = this.chatRooms();
+    const search = this.searchTerm().toLowerCase();
+
+    if (!search) {
+      return rooms;
+    }
+
+    return rooms.filter(
+      (room) =>
+        room.name.toLowerCase().includes(search) ||
+        room.description?.toLowerCase().includes(search) ||
+        room.lastMessage?.message.toLowerCase().includes(search)
+    );
+  });
 
   readonly ChatRoomTypeEnum = ChatRoomTypeEnum;
 
@@ -125,9 +144,6 @@ export class ChatListPage implements OnInit, OnDestroy {
       this.loadFamilyAndMembers();
       this.loadChatRooms();
     }
-
-    // Update filtered rooms when chat rooms or search term changes
-    this.updateFilteredRooms();
   }
 
   ngOnDestroy() {
@@ -179,7 +195,7 @@ export class ChatListPage implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.updateFilteredRooms();
+          // Rooms are automatically updated via the computed signal
         },
         error: (error) => {
           console.error('Load chat rooms error:', error);
@@ -188,24 +204,6 @@ export class ChatListPage implements OnInit, OnDestroy {
       });
   }
 
-  protected updateFilteredRooms() {
-    const rooms = this.chatRooms();
-    const search = this.searchTerm().toLowerCase();
-
-    if (!search) {
-      this.filteredRooms.set(rooms);
-      return;
-    }
-
-    const filtered = rooms.filter(
-      (room) =>
-        room.name.toLowerCase().includes(search) ||
-        room.description?.toLowerCase().includes(search) ||
-        room.lastMessage?.message.toLowerCase().includes(search)
-    );
-
-    this.filteredRooms.set(filtered);
-  }
 
   // Event Handlers
   async goBack() {
@@ -230,7 +228,7 @@ export class ChatListPage implements OnInit, OnDestroy {
 
   onSearchChange(event: any) {
     this.searchTerm.set(event.detail.value || '');
-    this.updateFilteredRooms();
+    // Filtering is handled automatically by the computed signal
   }
 
   async openChatRoom(room: ChatRoom) {
@@ -404,7 +402,7 @@ export class ChatListPage implements OnInit, OnDestroy {
             'Chat room deleted successfully',
             'success'
           );
-          this.updateFilteredRooms();
+          // Filtering is handled automatically by the computed signal
         },
         error: () => {
           this.toastService.showToast('Failed to delete chat room', 'danger');
@@ -431,7 +429,27 @@ export class ChatListPage implements OnInit, OnDestroy {
   }
 
   formatMessageTime(dateString: string): string {
-    return formatMessageTime(dateString);
+    const now = Date.now();
+    const cacheKey = dateString;
+    const cached = this.timeFormatCache.get(cacheKey);
+    
+    // Cache for 30 seconds to prevent frequent change detection triggers
+    if (cached && (now - cached.timestamp) < 30000) {
+      return cached.value;
+    }
+    
+    const formatted = formatMessageTime(dateString);
+    this.timeFormatCache.set(cacheKey, { value: formatted, timestamp: now });
+    
+    // Clean cache periodically to prevent memory leaks
+    if (this.timeFormatCache.size > 100) {
+      const oldestEntries = Array.from(this.timeFormatCache.entries())
+        .sort(([,a], [,b]) => a.timestamp - b.timestamp)
+        .slice(0, 50);
+      oldestEntries.forEach(([key]) => this.timeFormatCache.delete(key));
+    }
+    
+    return formatted;
   }
 
   getLastMessagePreview(room: ChatRoom): string {

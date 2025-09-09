@@ -409,8 +409,13 @@ export class WebSocketService implements OnDestroy {
           // Create a wrapper object that mimics Echo's channel API
           channel = {
             listen: (eventName: string, callback: Function) => {
-              console.log(`👂 Setting up Ably listener for: ${eventName}`);
-              ablyChannel.subscribe(eventName, callback);
+              // Handle both '.event.name' and 'event.name' formats
+              const cleanEventName = eventName.startsWith('.') ? eventName.substring(1) : eventName;
+              console.log(`👂 Setting up Ably listener for: ${eventName} -> ${cleanEventName}`);
+              ablyChannel.subscribe(cleanEventName, (message: any) => {
+                console.log(`🎯 Event matched for ${cleanEventName}:`, message);
+                callback(message);
+              });
             },
             subscribed: (callback: Function) => {
               ablyChannel.on('attached', callback);

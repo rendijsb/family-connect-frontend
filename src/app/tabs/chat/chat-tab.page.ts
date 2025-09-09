@@ -49,6 +49,9 @@ export class ChatTabPage implements OnInit, OnDestroy {
   readonly allChatRooms = signal<{ family: Family; rooms: ChatRoom[] }[]>([]);
   readonly isLoading = signal<boolean>(false);
   readonly totalUnreadCount = this.chatService.totalUnreadCount;
+  
+  // Memoized time format cache to prevent change detection issues
+  private timeFormatCache = new Map<string, { value: string; timestamp: number }>();
 
   constructor() {
     this.addIcons();
@@ -172,7 +175,27 @@ export class ChatTabPage implements OnInit, OnDestroy {
   }
 
   formatMessageTime(dateString: string): string {
-    return formatMessageTime(dateString);
+    const now = Date.now();
+    const cacheKey = dateString;
+    const cached = this.timeFormatCache.get(cacheKey);
+    
+    // Cache for 30 seconds to prevent frequent change detection triggers
+    if (cached && (now - cached.timestamp) < 30000) {
+      return cached.value;
+    }
+    
+    const formatted = formatMessageTime(dateString);
+    this.timeFormatCache.set(cacheKey, { value: formatted, timestamp: now });
+    
+    // Clean cache periodically to prevent memory leaks
+    if (this.timeFormatCache.size > 100) {
+      const oldestEntries = Array.from(this.timeFormatCache.entries())
+        .sort(([,a], [,b]) => a.timestamp - b.timestamp)
+        .slice(0, 50);
+      oldestEntries.forEach(([key]) => this.timeFormatCache.delete(key));
+    }
+    
+    return formatted;
   }
 
   getLastMessagePreview(room: ChatRoom): string {

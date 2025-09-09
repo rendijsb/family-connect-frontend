@@ -94,6 +94,7 @@ export class ChatService {
 
   readonly typingUsersText = computed(() => {
     const users = this._typingUsers();
+    console.log('⌨️ Computing typing text for users:', users);
     if (users.length === 0) return '';
     if (users.length === 1) return `${users[0].userName} is typing...`;
     if (users.length === 2)
@@ -422,13 +423,14 @@ export class ChatService {
   // Typing Indicators
   sendTypingIndicator(
     familySlug: string,
-    roomId: number
+    roomId: number,
+    isTyping: boolean = true
   ): Observable<ApiResponse<void>> {
     return this.http.post<ApiResponse<void>>(
       this.apiUrlService.getUrl(
         `families/${familySlug}/chat/rooms/${roomId}/typing`
       ),
-      {}
+      { isTyping }
     );
   }
 
@@ -554,16 +556,24 @@ export class ChatService {
 
     // Listen for typing indicators
     channel.listen('.user.typing', (event: any) => {
-      console.log('⌨️ USER TYPING:', event);
-      if (event.userId && event.userName && event.isTyping !== undefined) {
+      console.log('⌨️ RECEIVED USER TYPING EVENT:', event);
+      
+      // Extract data from Ably message wrapper
+      const eventData = event.data || event;
+      console.log('⌨️ Event data extracted:', eventData);
+      
+      if (eventData.userId && eventData.userName && eventData.isTyping !== undefined) {
+        console.log('⌨️ Processing typing event for:', eventData.userName, 'isTyping:', eventData.isTyping);
         this.handleTypingEvent(
           roomId,
           {
-            id: event.userId,
-            name: event.userName,
+            id: eventData.userId,
+            name: eventData.userName,
           },
-          event.isTyping
+          eventData.isTyping
         );
+      } else {
+        console.warn('⚠️ Incomplete typing event received. Event:', event, 'Data:', eventData);
       }
     });
 
@@ -747,11 +757,15 @@ export class ChatService {
 
     // Ignore own typing events
     const currentUserId = this.authService.user()?.id;
+    console.log('⌨️ Current user ID:', currentUserId, 'Typing user ID:', user.id);
+    
     if (user.id === currentUserId) {
+      console.log('⌨️ Ignoring typing event from current user');
       return;
     }
 
     const currentTypingUsers = this._typingUsers();
+    console.log('⌨️ Current typing users:', currentTypingUsers);
 
     if (isTyping) {
       // Add user to typing list if not already there
@@ -762,7 +776,9 @@ export class ChatService {
           userName: user.name,
           lastTyping: Date.now(),
         };
+        console.log('⌨️ Adding typing user:', typingUser);
         this._typingUsers.set([...currentTypingUsers, typingUser]);
+        console.log('⌨️ Updated typing users array:', this._typingUsers());
 
         // Auto-remove typing indicator after 5 seconds
         const timeoutId = setTimeout(() => {

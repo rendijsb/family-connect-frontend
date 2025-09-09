@@ -23,6 +23,7 @@ import {
 import { FamilyService } from '../../../core/services/family/family.service';
 import { FamilyMemberService } from '../../../core/services/family-member/family-member.service';
 import { AuthService } from '../../../core/services/auth/auth.service';
+import { ChatService } from '../../../core/services/chat/chat.service';
 import {
   Family,
   FamilyMember,
@@ -65,6 +66,7 @@ export class FamilyDetailPage implements OnInit, OnDestroy {
   private readonly familyService = inject(FamilyService);
   private readonly familyMemberService = inject(FamilyMemberService);
   private readonly authService = inject(AuthService);
+  private readonly chatService = inject(ChatService);
   private readonly toastService = inject(ToastService);
   private readonly modalController = inject(ModalController);
 
@@ -337,8 +339,34 @@ export class FamilyDetailPage implements OnInit, OnDestroy {
   }
 
   async chatWithMember(member: FamilyMember) {
-    // Navigate to direct chat with member
-    await this.router.navigate(['/chat', 'direct', member.userId]);
+    if (!member.user?.id) {
+      await this.toastService.showToast(
+        'Unable to start chat with this member.',
+        'danger'
+      );
+      return;
+    }
+
+    try {
+      const response = await this.chatService
+        .findOrCreateDirectMessage(this.familySlug(), member.user.id)
+        .toPromise();
+
+      if (response?.data) {
+        await this.router.navigate([
+          '/family',
+          this.familySlug(),
+          'chat',
+          response.data.id,
+        ]);
+      }
+    } catch (error) {
+      console.error('Failed to start direct message:', error);
+      await this.toastService.showToast(
+        'Failed to start chat. Please try again.',
+        'danger'
+      );
+    }
   }
 
   // Join Code Actions
