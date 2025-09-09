@@ -4,6 +4,7 @@ import { Capacitor } from '@capacitor/core';
 import { PushNotifications, Token, PushNotificationSchema, ActionPerformed, PermissionStatus } from '@capacitor/push-notifications';
 import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
+import { ApiUrlService } from '../api.service';
 
 export interface NotificationPayload {
   title: string;
@@ -18,6 +19,7 @@ export interface NotificationPayload {
 export class NotificationService {
   private readonly platform = inject(Platform);
   private readonly router = inject(Router);
+  private readonly apiUrlService = inject(ApiUrlService);
 
   private readonly _pushToken = new BehaviorSubject<string | null>(null);
   private readonly _isInitialized = new BehaviorSubject<boolean>(false);
@@ -27,64 +29,115 @@ export class NotificationService {
   readonly isInitialized$ = this._isInitialized.asObservable();
 
   async initialize(): Promise<void> {
+    console.log('🔔 NotificationService: Starting initialization...');
+    
     if (!Capacitor.isNativePlatform()) {
-      console.log('Push notifications not available on web platform');
+      console.log('🌐 Web platform detected - using browser notifications for testing');
+      await this.initializeWebNotifications();
       this._isInitialized.next(true);
       return;
     }
 
     if (this._isInitialized.value) {
       console.log('Push notifications already initialized');
+      console.log('Current token:', this._pushToken.value ? 'EXISTS' : 'NONE');
+      console.log('Listeners registered:', this._listenersRegistered);
       return;
     }
 
     try {
+      console.log('📋 Step 1: Checking permissions...');
       // Check if push notifications are supported
       const permissions = await PushNotifications.checkPermissions();
       console.log('Current notification permissions:', permissions);
 
+      console.log('🔐 Step 2: Requesting permissions...');
       // Request permission first
       const permResult = await PushNotifications.requestPermissions();
       console.log('Permission request result:', permResult);
 
       if (permResult.receive !== 'granted') {
-        console.warn('Push notification permission denied');
-        this._isInitialized.next(true);
-        return;
+        console.warn('⚠️ Push notification permission denied, but will still register for future use');
+      } else {
+        console.log('✅ Push notification permission GRANTED!');
       }
 
+      console.log('🧹 Step 3: Cleaning up old listeners...');
       await this.cleanupListeners();
 
+      console.log('📝 Step 4: Registering for push notifications...');
+      console.log('🔍 Platform info:');
+      console.log('- Platform:', Capacitor.getPlatform());
+      console.log('- Is native platform:', Capacitor.isNativePlatform());
+      console.log('- Platform platforms:', this.platform.platforms());
+      
+      // Always try to register regardless of permission status
+      // The user might grant permission later
       await PushNotifications.register();
+      console.log('✅ PushNotifications.register() completed successfully');
+      
+      // Set up a timeout to detect if registration never happens
+      console.log('⏱️ Setting up 10-second timeout to check registration...');
+      setTimeout(() => {
+        if (!this._pushToken.value) {
+          console.warn('⚠️ TIMEOUT: No push token received after 10 seconds!');
+          console.warn('⚠️ This usually means:');
+          console.warn('⚠️ 1. iOS app is not configured for push notifications');
+          console.warn('⚠️ 2. Device is not connected to internet');
+          console.warn('⚠️ 3. Apple Push Notification service is unreachable');
+          console.warn('⚠️ 4. App is running on iOS Simulator (which doesn\'t support push)');
+        }
+      }, 10000);
 
+      console.log('👂 Step 5: Setting up listeners...');
       if (!this._listenersRegistered) {
+        console.log('🔗 Adding registration listener...');
         PushNotifications.addListener('registration', (token: Token) => {
-          console.log('Push registration success, token: ', token.value);
+          console.log('🎯 Push registration success, token: ', token.value);
           this._pushToken.next(token.value);
+          console.log('📤 Sending token to backend...');
           this.sendTokenToBackend(token.value);
         });
 
+        console.log('🚨 Adding registration error listener...');
         PushNotifications.addListener('registrationError', (error: any) => {
-          console.error('Error on registration: ', JSON.stringify(error));
+          console.error('❌ Push registration error: ', JSON.stringify(error));
+          console.error('❌ Error type:', typeof error);
+          console.error('❌ Error message:', error?.message || 'No message');
+          console.error('❌ Error code:', error?.code || 'No code');
         });
 
+        console.log('📲 Adding notification received listener...');
         PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
           console.log('Push notification received: ', JSON.stringify(notification));
           this.handleForegroundNotification(notification);
         });
 
+        console.log('👆 Adding notification action listener...');
         PushNotifications.addListener('pushNotificationActionPerformed', (notification: ActionPerformed) => {
           console.log('Push notification action performed: ', JSON.stringify(notification));
           this.handleNotificationAction(notification);
         });
 
         this._listenersRegistered = true;
-        console.log('Push notification listeners registered');
+        console.log('✅ All push notification listeners registered');
+      } else {
+        console.log('ℹ️ Listeners already registered, skipping...');
       }
 
+      console.log('🏁 Step 6: Initialization complete!');
       this._isInitialized.next(true);
+      
+      // Let's also check what happened
+      setTimeout(() => {
+        console.log('🔍 Post-initialization check:');
+        console.log('- Initialized:', this._isInitialized.value);
+        console.log('- Token exists:', this._pushToken.value ? 'YES' : 'NO');
+        console.log('- Token value:', this._pushToken.value ? this._pushToken.value.substring(0, 20) + '...' : 'NONE');
+        console.log('- Listeners registered:', this._listenersRegistered);
+      }, 1000);
     } catch (error) {
-      console.error('Error initializing push notifications:', error);
+      console.error('❌ Error initializing push notifications:', error);
       this._isInitialized.next(true);
     }
   }
@@ -110,12 +163,55 @@ export class NotificationService {
   }
 
   private async sendTokenToBackend(token: string): Promise<void> {
+    console.log('🚀 Attempting to send token to backend:', token.substring(0, 20) + '...');
+    console.log('📍 Backend URL:', this.apiUrlService.getUrl('device-tokens'));
+    console.log('📱 Platform:', this.platform.platforms());
+    console.log('🔧 Device type:', Capacitor.getPlatform());
+    
     try {
-      // TODO: Implement API call to store device token
-      // await this.http.post('/api/device-tokens', { token, platform: this.platform.platforms() }).toPromise();
-      console.log('Device token to send to backend:', token);
+      const authToken = await this.getAuthToken();
+      console.log('🔑 Auth token exists:', authToken ? 'YES' : 'NO');
+      
+      const requestBody = {
+        token,
+        platform: this.platform.platforms(),
+        device_type: Capacitor.getPlatform()
+      };
+      console.log('📦 Request body:', requestBody);
+      
+      const response = await fetch(this.apiUrlService.getUrl('device-tokens'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response ok:', response.ok);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('📡 Response error body:', errorText);
+        throw new Error(`Failed to register device token: ${response.status} - ${errorText}`);
+      }
+
+      const responseData = await response.json();
+      console.log('📡 Response data:', responseData);
+      console.log('✅ Device token successfully registered with backend!');
     } catch (error) {
-      console.error('Failed to send token to backend:', error);
+      console.error('❌ Failed to send token to backend:', error);
+      console.error('❌ Error details:', error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+
+  private async getAuthToken(): Promise<string | null> {
+    try {
+      // Get token from localStorage or your auth service
+      return localStorage.getItem('auth_token');
+    } catch {
+      return null;
     }
   }
 
@@ -237,7 +333,7 @@ export class NotificationService {
 
   // Method to reset and reinitialize notifications (useful for troubleshooting)
   async resetNotifications(): Promise<void> {
-    console.log('Resetting push notifications...');
+    console.log('🔄 Resetting push notifications...');
     this._isInitialized.next(false);
     this._listenersRegistered = false;
     this._pushToken.next(null);
@@ -247,6 +343,31 @@ export class NotificationService {
       await this.initialize();
     } catch (error) {
       console.error('Error resetting notifications:', error);
+    }
+  }
+
+  // Force re-initialization even if already initialized
+  async forceInitialize(): Promise<void> {
+    console.log('🔥 Force initializing notifications...');
+    this._isInitialized.next(false);
+    await this.initialize();
+  }
+
+  // Web notifications fallback for testing
+  private async initializeWebNotifications(): Promise<void> {
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission();
+      console.log('🌐 Web notification permission:', permission);
+      
+      if (permission === 'granted') {
+        // Generate a fake token for testing
+        const fakeToken = 'web-test-token-' + Date.now();
+        this._pushToken.next(fakeToken);
+        console.log('🎯 Web notification token generated:', fakeToken);
+        
+        // Send to backend for testing
+        await this.sendTokenToBackend(fakeToken);
+      }
     }
   }
 }

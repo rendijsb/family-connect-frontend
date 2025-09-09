@@ -94,7 +94,6 @@ export class ChatService {
 
   readonly typingUsersText = computed(() => {
     const users = this._typingUsers();
-    console.log('⌨️ Computing typing text for users:', users);
     if (users.length === 0) return '';
     if (users.length === 1) return `${users[0].userName} is typing...`;
     if (users.length === 2)

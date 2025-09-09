@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "599687321701",
+    "project_id": "family-connect-48608",
+    "storage_bucket": "family-connect-48608.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:599687321701:android:d3ee9c17228dd9aaa48e8c",
+        "android_client_info": {
+          "package_name": "com.example.family_connect"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "599687321701-6efhjogdnj3t41np29ku3c6sqj9ek446.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAoA3rEBdUPPBzW218Bkt3pWSjmX4bgHJY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "599687321701-6efhjogdnj3t41np29ku3c6sqj9ek446.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "599687321701-m2hhjfed0ak8u00dtjv1hfkke5gqdlck.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.familyConnect"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

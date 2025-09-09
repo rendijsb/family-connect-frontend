@@ -57,8 +57,6 @@ export class WebSocketService implements OnDestroy {
     if (Echo && Ably) return;
 
     try {
-      console.log('📦 Loading WebSocket libraries...');
-
       // Load Ably first
       const ablyModule = await import('ably');
       Ably = ablyModule.default || ablyModule;
@@ -69,12 +67,7 @@ export class WebSocketService implements OnDestroy {
       // Now load Laravel Echo
       const echoModule = await import('@ably/laravel-echo');
       Echo = echoModule.default || echoModule;
-
-      console.log('✅ WebSocket libraries loaded successfully');
-      console.log('📋 Ably version:', Ably?.version || 'unknown');
-      console.log('📋 Echo loaded:', !!Echo);
     } catch (error) {
-      console.error('❌ Failed to load WebSocket libraries:', error);
       this.connectionStateSubject.next(ConnectionState.FAILED);
       throw error;
     }
@@ -83,22 +76,18 @@ export class WebSocketService implements OnDestroy {
   async connect(): Promise<void> {
     if (this.connectionState === ConnectionState.CONNECTING ||
       this.connectionState === ConnectionState.CONNECTED) {
-      console.log('🔌 Connection already in progress or established');
       return;
     }
 
     if (!this.authService.isAuthenticated()) {
-      console.warn('⚠️ User not authenticated');
       throw new Error('User not authenticated');
     }
 
     const token = this.authService.getToken();
     if (!token) {
-      console.error('❌ No auth token available');
       throw new Error('No auth token available');
     }
 
-    console.log('🚀 Starting Ably connection...');
     this.connectionStateSubject.next(ConnectionState.CONNECTING);
     this.connectionStartTime = Date.now();
 
@@ -112,12 +101,6 @@ export class WebSocketService implements OnDestroy {
       // Set Ably globally for @ably/laravel-echo (required)
       window.Ably = Ably;
 
-      console.log('🔧 Creating Echo instance with standard @ably/laravel-echo config:', {
-        broadcaster: 'ably',
-        key: environment.ably.key,
-        authEndpoint: environment.ably.authEndpoint,
-        token: token ? 'present' : 'missing'
-      });
 
       const ablyClient = new Ably.Realtime({
         key: environment.ably.key,
@@ -146,25 +129,16 @@ export class WebSocketService implements OnDestroy {
       });
 
 
-      console.log('🔗 Echo instance created, setting up connection handlers...');
       this.setupConnectionHandlers();
       this.startConnectionTimeout();
 
     } catch (error) {
-      console.error('❌ Connection initialization failed:', error);
       this.handleConnectionFailure();
       throw error;
     }
   }
 
   private setupConnectionHandlers(): void {
-    console.log('🔧 Setting up connection handlers...');
-    console.log('🔍 Echo structure:', {
-      hasEcho: !!this.echo,
-      hasConnector: !!this.echo?.connector,
-      connectorType: typeof this.echo?.connector,
-      connectorKeys: this.echo?.connector ? Object.keys(this.echo.connector) : 'none'
-    });
 
     // For @ably/laravel-echo with Realtime client, access it from connector
     let ably = this.echo?.connector?.ably;
@@ -172,11 +146,9 @@ export class WebSocketService implements OnDestroy {
     // If that doesn't exist, try to get it from the options or directly from Echo
     if (!ably && this.echo?.connector?.options?.client) {
       ably = this.echo.connector.options.client;
-      console.log('🔍 Using client from options');
     }
 
     if (!ably) {
-      console.error('❌ Ably client not available - this should not happen with Realtime client');
       this.handleConnectionFailure();
       return;
     }
