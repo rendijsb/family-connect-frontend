@@ -118,6 +118,7 @@ export class ChatRoomPage implements OnInit, OnDestroy, AfterViewInit {
 
   // Typing indicator subject
   private readonly typingSubject = new Subject<void>();
+  private isCurrentlyTyping = false;
 
   // State signals
   readonly chatRoom = this.chatService.currentChatRoom;
@@ -322,6 +323,12 @@ export class ChatRoomPage implements OnInit, OnDestroy, AfterViewInit {
     // Clear input immediately for better UX
     this.messageText.set('');
     this.replyingTo.set(null);
+    
+    // Stop typing indicator when sending message
+    if (this.isCurrentlyTyping) {
+      this.isCurrentlyTyping = false;
+      this.sendTypingIndicator(false);
+    }
 
     this.chatService
       .sendMessage(this.familySlug(), this.roomId(), request)
@@ -397,10 +404,27 @@ export class ChatRoomPage implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private setupTypingIndicator() {
+    // Send typing indicator when user starts typing
     this.typingSubject
-      .pipe(debounceTime(500), takeUntil(this.destroy$))
+      .pipe(debounceTime(300), takeUntil(this.destroy$))
       .subscribe(() => {
-        this.sendTypingIndicator();
+        if (!this.isCurrentlyTyping) {
+          this.isCurrentlyTyping = true;
+          this.sendTypingIndicator(true);
+        }
+      });
+
+    // Stop typing indicator after user stops typing
+    this.typingSubject
+      .pipe(
+        debounceTime(2000), // Wait 2 seconds after last keystroke
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        if (this.isCurrentlyTyping) {
+          this.isCurrentlyTyping = false;
+          this.sendTypingIndicator(false);
+        }
       });
   }
 
@@ -456,11 +480,18 @@ export class ChatRoomPage implements OnInit, OnDestroy, AfterViewInit {
       .subscribe();
   }
 
-  private sendTypingIndicator() {
+  private sendTypingIndicator(isTyping: boolean) {
     this.chatService
-      .sendTypingIndicator(this.familySlug(), this.roomId())
+      .sendTypingIndicator(this.familySlug(), this.roomId(), isTyping)
       .pipe(takeUntil(this.destroy$))
-      .subscribe();
+      .subscribe({
+        next: () => {
+          console.log(`${isTyping ? '⌨️' : '✋'} Typing indicator sent:`, isTyping);
+        },
+        error: (error) => {
+          console.error('Failed to send typing indicator:', error);
+        }
+      });
   }
 
   private scrollToBottom() {

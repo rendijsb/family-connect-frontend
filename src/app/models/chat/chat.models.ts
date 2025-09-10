@@ -207,7 +207,16 @@ export function formatMessageTime(dateString: string): string {
 
   if (diffInMs < 60000) return 'now';
   if (diffInMs < 3600000) return `${Math.floor(diffInMs / 60000)}m`;
-  if (diffInHours < 24) return `${Math.floor(diffInHours)}h`;
+  
+  // For messages older than 1 hour, show actual time HH:MM
+  if (diffInHours >= 1 && diffInHours < 24) {
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      hour12: false 
+    });
+  }
+  
   if (diffInDays < 7)
     return date.toLocaleDateString('en-US', { weekday: 'short' });
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });

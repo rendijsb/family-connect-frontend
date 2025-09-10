@@ -28,6 +28,21 @@ body {
   line-height: 1.5;
 }
 
+/* Fix white screen after refresh by ensuring app-root has full height */
+app-root {
+  display: block;
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+  background: #1a1a1a;
+}
+
+ion-app {
+  background: #1a1a1a !important;
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
 /* Prevent zoom on input focus for iOS */
 input[type="text"],
 input[type="email"],

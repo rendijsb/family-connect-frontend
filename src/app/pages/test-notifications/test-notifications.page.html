@@ -1,0 +1,190 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>🔔 Test Notifications</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  @if (isLoading()) {
+    <div class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading notification data...</p>
+    </div>
+  }
+
+  <!-- Configuration Status -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="settings-outline"></ion-icon>
+        Configuration Status
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @if (config()) {
+        <ion-list>
+          <ion-item>
+            <ion-label>
+              <h3>FCM Project ID</h3>
+              <p>{{ config()?.fcm_project_id || 'Not configured' }}</p>
+            </ion-label>
+            <ion-icon 
+              [name]="config()?.fcm_project_id ? 'checkmark-circle' : 'alert-circle'"
+              [color]="config()?.fcm_project_id ? 'success' : 'danger'"
+              slot="end">
+            </ion-icon>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>
+              <h3>Service Account File</h3>
+              <p>{{ config()?.service_account_exists ? 'Found' : 'Missing' }}</p>
+            </ion-label>
+            <ion-icon 
+              [name]="config()?.service_account_exists ? 'checkmark-circle' : 'alert-circle'"
+              [color]="config()?.service_account_exists ? 'success' : 'danger'"
+              slot="end">
+            </ion-icon>
+          </ion-item>
+
+          @if (config()?.service_account_client_email) {
+            <ion-item>
+              <ion-label>
+                <h3>Service Account Email</h3>
+                <p>{{ config()?.service_account_client_email }}</p>
+              </ion-label>
+            </ion-item>
+          }
+
+          @if (config()?.service_account_error) {
+            <ion-item color="danger">
+              <ion-label>
+                <h3>Service Account Error</h3>
+                <p>{{ config()?.service_account_error }}</p>
+              </ion-label>
+            </ion-item>
+          }
+        </ion-list>
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Actions -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="notifications-outline"></ion-icon>
+        Test Actions
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-button 
+        expand="block" 
+        fill="outline" 
+        (click)="initializeNotifications()"
+        class="action-button">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Initialize Push Notifications
+      </ion-button>
+
+      <ion-button 
+        expand="block" 
+        fill="outline" 
+        (click)="requestPermissions()"
+        class="action-button">
+        <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
+        Request Notification Permissions
+      </ion-button>
+
+      <ion-button 
+        expand="block" 
+        (click)="sendTestNotification()" 
+        [disabled]="isTesting() || deviceTokens().length === 0"
+        class="action-button">
+        @if (isTesting()) {
+          <ion-spinner name="crescent" slot="start"></ion-spinner>
+          Sending...
+        } @else {
+          <ion-icon name="paper-plane-outline" slot="start"></ion-icon>
+          Send Test Notification
+        }
+      </ion-button>
+
+      <ion-button 
+        expand="block" 
+        fill="clear" 
+        (click)="loadData()"
+        class="action-button">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Refresh Data
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Device Tokens -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="phone-portrait-outline"></ion-icon>
+        Device Tokens
+        <ion-badge color="primary">{{ deviceTokens().length }}</ion-badge>
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @if (deviceTokens().length === 0) {
+        <div class="empty-state">
+          <ion-icon name="phone-portrait-outline" size="large"></ion-icon>
+          <h3>No Device Tokens</h3>
+          <p>Enable push notifications in the app to register device tokens.</p>
+        </div>
+      } @else {
+        <ion-list>
+          @for (token of deviceTokens(); track token.id) {
+            <ion-item>
+              <ion-icon 
+                [name]="getDeviceIcon(token.device_type)" 
+                slot="start"
+                [color]="token.is_active ? 'primary' : 'medium'">
+              </ion-icon>
+              <ion-label>
+                <h3>{{ token.device_type.toUpperCase() }}</h3>
+                <p>{{ token.token_preview }}</p>
+                <p class="timestamp">
+                  <ion-icon name="time-outline"></ion-icon>
+                  Created: {{ token.created_at }}
+                  @if (token.last_used_at) {
+                    | Used: {{ token.last_used_at }}
+                  }
+                </p>
+              </ion-label>
+              <ion-badge 
+                [color]="token.is_active ? 'success' : 'warning'"
+                slot="end">
+                {{ token.is_active ? 'Active' : 'Inactive' }}
+              </ion-badge>
+            </ion-item>
+          }
+        </ion-list>
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Alert for test results -->
+  <ion-alert
+    [isOpen]="showAlert()"
+    header="Notification Test"
+    [message]="testResult()"
+    [buttons]="['OK']"
+    (didDismiss)="showAlert.set(false)">
+  </ion-alert>
+
+  <!-- Toast for successful tests -->
+  <ion-toast
+    [isOpen]="showToast()"
+    [message]="testResult()"
+    duration="3000"
+    color="success"
+    position="top"
+    (didDismiss)="showToast.set(false)">
+  </ion-toast>
+</ion-content>

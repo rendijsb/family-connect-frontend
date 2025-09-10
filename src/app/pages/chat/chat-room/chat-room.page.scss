@@ -376,8 +376,8 @@
 }
 
 .message-time {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
   margin-top: 4px;
   text-align: right;
@@ -637,6 +637,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 24px;
   padding: 8px;
+  min-height: 56px;
   transition: all 0.3s ease;
 
   &:focus-within {
@@ -649,10 +650,14 @@
 .send-btn,
 .voice-btn {
   --color: #a1a1aa;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   margin: 0;
   flex-shrink: 0;
+
+  ion-icon {
+    font-size: 24px;
+  }
 
   &:hover {
     --color: #dc2626;
@@ -775,14 +780,19 @@
   }
 
   .input-bar {
-    padding: 6px;
+    padding: 8px;
+    min-height: 52px;
   }
 
   .attachment-btn,
   .send-btn,
   .voice-btn {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
+
+    ion-icon {
+      font-size: 20px;
+    }
   }
 
   .message-textarea {
