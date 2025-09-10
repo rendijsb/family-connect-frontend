@@ -1,0 +1,335 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/family/{{familySlug}}"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Memories</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="openFilterModal()">
+        <ion-icon name="funnel"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Search Bar -->
+  <ion-searchbar
+    [value]="searchTerm()"
+    (ionInput)="onSearchChange($event)"
+    placeholder="Search memories..."
+    debounce="500">
+  </ion-searchbar>
+
+  <!-- View Mode Toggle -->
+  <ion-segment 
+    [value]="viewMode()" 
+    (ionChange)="onViewModeChange($event)"
+    class="segment-padding">
+    <ion-segment-button value="timeline">
+      <ion-icon name="time"></ion-icon>
+      <ion-label>Timeline</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="grid">
+      <ion-icon name="grid"></ion-icon>
+      <ion-label>Grid</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="list">
+      <ion-icon name="list"></ion-icon>
+      <ion-label>List</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Featured Memories Section -->
+  <div class="featured-section" *ngIf="featuredMemories().length > 0">
+    <ion-item lines="none" class="section-header">
+      <ion-icon name="star" color="warning" slot="start"></ion-icon>
+      <ion-label>
+        <h2>Featured Memories</h2>
+      </ion-label>
+    </ion-item>
+    
+    <div class="featured-scroll">
+      <ion-card 
+        *ngFor="let memory of featuredMemories()" 
+        class="featured-card"
+        (click)="openMemoryDetail(memory)">
+        <div class="featured-image" *ngIf="memory.media && memory.media.length > 0">
+          <img [src]="memory.media[0].thumbnailUrl || memory.media[0].url" 
+               [alt]="memory.title">
+        </div>
+        <ion-card-content>
+          <ion-text>
+            <h3>{{ memory.title }}</h3>
+            <p>{{ formatDate(memory.memoryDate) }}</p>
+          </ion-text>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-container">
+    <ion-skeleton-text animated style="width: 100%; height: 200px; margin-bottom: 16px;"></ion-skeleton-text>
+    <ion-skeleton-text animated style="width: 100%; height: 200px; margin-bottom: 16px;"></ion-skeleton-text>
+    <ion-skeleton-text animated style="width: 100%; height: 200px;"></ion-skeleton-text>
+  </div>
+
+  <!-- Timeline View -->
+  <div *ngIf="!loading() && viewMode() === 'timeline'" class="timeline-container">
+    <div *ngFor="let item of timelineItems()" class="timeline-item">
+      <div class="timeline-date">
+        <ion-chip color="primary">
+          <ion-icon name="calendar"></ion-icon>
+          <ion-label>{{ item.date }}</ion-label>
+          <ion-badge color="secondary">{{ item.count }}</ion-badge>
+        </ion-chip>
+      </div>
+      
+      <div class="timeline-memories">
+        <ion-card 
+          *ngFor="let memory of item.memories" 
+          class="memory-card"
+          (click)="openMemoryDetail(memory)">
+          <ion-card-header>
+            <div class="memory-header">
+              <div class="memory-info">
+                <ion-chip [color]="getMemoryTypeColor(memory.type)">
+                  <ion-icon [name]="getMemoryTypeIcon(memory.type)"></ion-icon>
+                  <ion-label>{{ memory.type | titlecase }}</ion-label>
+                </ion-chip>
+                <ion-card-title>{{ memory.title }}</ion-card-title>
+                <ion-card-subtitle>{{ formatDate(memory.memoryDate) }}</ion-card-subtitle>
+              </div>
+              <div class="memory-actions">
+                <ion-button 
+                  fill="clear" 
+                  size="small"
+                  (click)="$event.stopPropagation(); toggleFeature(memory)"
+                  *ngIf="memory.permissions.canEdit">
+                  <ion-icon 
+                    [name]="memory.isFeatured ? 'star' : 'star-outline'"
+                    [color]="memory.isFeatured ? 'warning' : 'medium'">
+                  </ion-icon>
+                </ion-button>
+              </div>
+            </div>
+          </ion-card-header>
+          
+          <div class="memory-media" *ngIf="memory.media && memory.media.length > 0">
+            <img [src]="memory.media[0].thumbnailUrl || memory.media[0].url" 
+                 [alt]="memory.title">
+          </div>
+          
+          <ion-card-content>
+            <ion-text *ngIf="memory.description">
+              <p>{{ memory.description }}</p>
+            </ion-text>
+            
+            <div class="memory-tags" *ngIf="memory.tags && memory.tags.length > 0">
+              <ion-chip 
+                *ngFor="let tag of memory.tags" 
+                size="small" 
+                color="secondary">
+                {{ tag }}
+              </ion-chip>
+            </div>
+            
+            <div class="memory-stats">
+              <ion-button fill="clear" size="small" (click)="$event.stopPropagation(); toggleLike(memory)">
+                <ion-icon 
+                  [name]="memory.isLikedByCurrentUser ? 'heart' : 'heart-outline'"
+                  [color]="memory.isLikedByCurrentUser ? 'danger' : 'medium'">
+                </ion-icon>
+                <ion-label>{{ memory.likesCount }}</ion-label>
+              </ion-button>
+              
+              <ion-button fill="clear" size="small">
+                <ion-icon name="chatbubble-outline" color="medium"></ion-icon>
+                <ion-label>{{ memory.commentsCount }}</ion-label>
+              </ion-button>
+              
+              <ion-button fill="clear" size="small">
+                <ion-icon name="eye-outline" color="medium"></ion-icon>
+                <ion-label>{{ memory.viewsCount }}</ion-label>
+              </ion-button>
+              
+              <ion-button 
+                fill="clear" 
+                size="small" 
+                slot="end"
+                (click)="$event.stopPropagation(); shareMemory(memory)">
+                <ion-icon name="share-outline" color="medium"></ion-icon>
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid View -->
+  <div *ngIf="!loading() && viewMode() === 'grid'" class="grid-container">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="6" *ngFor="let memory of filteredMemories()">
+          <ion-card class="grid-card" (click)="openMemoryDetail(memory)">
+            <div class="grid-image" *ngIf="memory.media && memory.media.length > 0">
+              <img [src]="memory.media[0].thumbnailUrl || memory.media[0].url" 
+                   [alt]="memory.title">
+              <div class="grid-overlay">
+                <ion-chip [color]="getMemoryTypeColor(memory.type)">
+                  <ion-icon [name]="getMemoryTypeIcon(memory.type)"></ion-icon>
+                </ion-chip>
+                <ion-icon 
+                  *ngIf="memory.isFeatured" 
+                  name="star" 
+                  color="warning" 
+                  class="featured-icon">
+                </ion-icon>
+              </div>
+            </div>
+            <ion-card-content>
+              <ion-card-title>{{ memory.title }}</ion-card-title>
+              <ion-card-subtitle>{{ formatDate(memory.memoryDate) }}</ion-card-subtitle>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+  <!-- List View -->
+  <ion-list *ngIf="!loading() && viewMode() === 'list'">
+    <ion-item 
+      *ngFor="let memory of filteredMemories()" 
+      button
+      (click)="openMemoryDetail(memory)">
+      <ion-thumbnail slot="start" *ngIf="memory.media && memory.media.length > 0">
+        <img [src]="memory.media[0].thumbnailUrl || memory.media[0].url" [alt]="memory.title">
+      </ion-thumbnail>
+      
+      <ion-label>
+        <div class="list-header">
+          <h2>{{ memory.title }}</h2>
+          <ion-icon 
+            *ngIf="memory.isFeatured" 
+            name="star" 
+            color="warning" 
+            size="small">
+          </ion-icon>
+        </div>
+        <p>{{ memory.description }}</p>
+        <ion-note>{{ formatDate(memory.memoryDate) }} • {{ getTimeAgo(memory.memoryDate) }}</ion-note>
+      </ion-label>
+      
+      <div slot="end" class="list-stats">
+        <ion-chip [color]="getMemoryTypeColor(memory.type)" size="small">
+          <ion-icon [name]="getMemoryTypeIcon(memory.type)"></ion-icon>
+        </ion-chip>
+        <div class="stat-row">
+          <ion-icon name="heart" color="danger" size="small"></ion-icon>
+          <span>{{ memory.likesCount }}</span>
+        </div>
+        <div class="stat-row">
+          <ion-icon name="chatbubble" color="primary" size="small"></ion-icon>
+          <span>{{ memory.commentsCount }}</span>
+        </div>
+      </div>
+    </ion-item>
+  </ion-list>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading() && filteredMemories().length === 0" class="empty-state">
+    <ion-icon name="bookmark-outline" size="large" color="medium"></ion-icon>
+    <h2>No memories found</h2>
+    <p>Start creating memories to build your family timeline!</p>
+    <ion-button (click)="openCreateMemory()">Create First Memory</ion-button>
+  </div>
+
+  <!-- Infinite Scroll -->
+  <ion-infinite-scroll 
+    *ngIf="viewMode() !== 'timeline'"
+    (ionInfinite)="onLoadMore($event)" 
+    threshold="100px">
+    <ion-infinite-scroll-content 
+      loadingSpinner="bubbles" 
+      loadingText="Loading more memories...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+  <!-- Floating Action Button -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="openCreateMemory()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
+
+<!-- Filter Modal -->
+<ion-modal #filterModal trigger="open-filter">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Filter Memories</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="filterModal.dismiss()">Close</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    
+    <ion-content class="ion-padding">
+      <!-- Memory Types -->
+      <ion-item>
+        <ion-label>Memory Types</ion-label>
+      </ion-item>
+      <div class="filter-chips">
+        <ion-chip 
+          *ngFor="let type of memoryTypes"
+          [color]="selectedTypes().includes(type.value) ? type.color : 'medium'"
+          (click)="toggleTypeFilter(type.value)">
+          <ion-icon [name]="type.icon"></ion-icon>
+          <ion-label>{{ type.label }}</ion-label>
+        </ion-chip>
+      </div>
+
+      <!-- Date Range -->
+      <ion-item>
+        <ion-label>From Date</ion-label>
+        <ion-datetime 
+          presentation="date" 
+          [value]="dateFrom()"
+          (ionChange)="dateFrom.set($event.detail.value!)">
+        </ion-datetime>
+      </ion-item>
+      
+      <ion-item>
+        <ion-label>To Date</ion-label>
+        <ion-datetime 
+          presentation="date" 
+          [value]="dateTo()"
+          (ionChange)="dateTo.set($event.detail.value!)">
+        </ion-datetime>
+      </ion-item>
+
+      <!-- Featured Only -->
+      <ion-item>
+        <ion-checkbox 
+          [checked]="showFeaturedOnly()"
+          (ionChange)="showFeaturedOnly.set($event.detail.checked)">
+        </ion-checkbox>
+        <ion-label class="ion-margin-start">Featured memories only</ion-label>
+      </ion-item>
+
+      <!-- Action Buttons -->
+      <div class="filter-actions">
+        <ion-button fill="clear" (click)="clearFilters()">Clear All</ion-button>
+        <ion-button (click)="applyFilters()">Apply Filters</ion-button>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>

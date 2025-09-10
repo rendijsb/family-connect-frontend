@@ -137,11 +137,32 @@
                   <span class="action-title">Locations</span>
                 </div>
 
-                <div class="action-item disabled">
+                <div class="action-item" (click)="openFamilyMemories()">
                   <div class="action-icon memories">
-                    <ion-icon name="heart-outline"></ion-icon>
+                    <ion-icon name="bookmark-outline"></ion-icon>
                   </div>
                   <span class="action-title">Memories</span>
+                </div>
+
+                <div class="action-item" (click)="openFamilyMilestones()">
+                  <div class="action-icon milestones">
+                    <ion-icon name="star-outline"></ion-icon>
+                  </div>
+                  <span class="action-title">Milestones</span>
+                </div>
+
+                <div class="action-item" (click)="openFamilyTraditions()">
+                  <div class="action-icon traditions">
+                    <ion-icon name="refresh-circle-outline"></ion-icon>
+                  </div>
+                  <span class="action-title">Traditions</span>
+                </div>
+
+                <div class="action-item" (click)="openFamilyTimeCapsules()">
+                  <div class="action-icon timecapsules">
+                    <ion-icon name="archive-outline"></ion-icon>
+                  </div>
+                  <span class="action-title">Time Capsules</span>
                 </div>
 
                 @if (canInviteMembers()) {

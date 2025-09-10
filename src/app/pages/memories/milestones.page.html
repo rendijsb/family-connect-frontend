@@ -1,0 +1,198 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/family/{{familySlug}}/memories"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Milestones</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Search Bar -->
+  <ion-searchbar
+    [value]="searchTerm()"
+    (ionInput)="onSearchChange($event)"
+    placeholder="Search milestones..."
+    debounce="500">
+  </ion-searchbar>
+
+  <!-- View Mode Toggle -->
+  <ion-segment 
+    [value]="viewMode()" 
+    (ionChange)="onViewModeChange($event)"
+    class="segment-padding">
+    <ion-segment-button value="all">
+      <ion-label>All</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="upcoming">
+      <ion-label>Upcoming</ion-label>
+      <ion-badge *ngIf="upcomingMilestones().length > 0" color="primary">
+        {{ upcomingMilestones().length }}
+      </ion-badge>
+    </ion-segment-button>
+    <ion-segment-button value="achieved">
+      <ion-label>Achieved</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Upcoming Milestones Section -->
+  <div class="upcoming-section" *ngIf="viewMode() === 'all' && upcomingMilestones().length > 0">
+    <ion-item lines="none" class="section-header">
+      <ion-icon name="calendar" color="primary" slot="start"></ion-icon>
+      <ion-label>
+        <h2>Coming Up</h2>
+        <p>Next 3 months</p>
+      </ion-label>
+    </ion-item>
+    
+    <div class="upcoming-scroll">
+      <ion-card 
+        *ngFor="let milestone of upcomingMilestones().slice(0, 5)" 
+        class="upcoming-card"
+        [class]="getDaysUntilMilestone(milestone.milestoneDate) <= 7 ? 'urgent' : ''"
+        (click)="openMilestoneDetail(milestone)">
+        
+        <div class="milestone-badge">
+          <ion-icon 
+            [name]="getMilestoneIcon(milestone.type)" 
+            [color]="getMilestoneColor(milestone.type)">
+          </ion-icon>
+        </div>
+        
+        <ion-card-content>
+          <ion-card-title>{{ milestone.title }}</ion-card-title>
+          <ion-card-subtitle>{{ formatDate(milestone.milestoneDate) }}</ion-card-subtitle>
+          <div class="time-display">
+            <ion-chip 
+              [color]="getDaysUntilMilestone(milestone.milestoneDate) <= 7 ? 'warning' : 'primary'">
+              <ion-icon name="time"></ion-icon>
+              <ion-label>{{ getTimeDisplay(milestone) }}</ion-label>
+            </ion-chip>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-container">
+    <ion-skeleton-text animated style="width: 100%; height: 120px; margin-bottom: 16px;"></ion-skeleton-text>
+    <ion-skeleton-text animated style="width: 100%; height: 120px; margin-bottom: 16px;"></ion-skeleton-text>
+    <ion-skeleton-text animated style="width: 100%; height: 120px;"></ion-skeleton-text>
+  </div>
+
+  <!-- Milestones List -->
+  <div *ngIf="!loading()" class="milestones-container">
+    <ion-card 
+      *ngFor="let milestone of filteredMilestones()" 
+      class="milestone-card"
+      [class.upcoming]="isUpcoming(milestone)"
+      (click)="openMilestoneDetail(milestone)">
+      
+      <ion-card-header>
+        <div class="milestone-header">
+          <div class="milestone-info">
+            <div class="milestone-badge-line">
+              <div class="badge-icon" [style.background-color]="'var(--ion-color-' + getMilestoneColor(milestone.type) + ')'">
+                <ion-icon 
+                  [name]="getMilestoneIcon(milestone.type)" 
+                  color="white">
+                </ion-icon>
+              </div>
+              <ion-chip [color]="getMilestoneColor(milestone.type)" size="small">
+                {{ milestoneTypes.find(t => t.value === milestone.type)?.label }}
+              </ion-chip>
+              <ion-chip 
+                *ngIf="milestone.isRecurring" 
+                color="secondary" 
+                size="small">
+                <ion-icon name="refresh"></ion-icon>
+                <ion-label>Recurring</ion-label>
+              </ion-chip>
+            </div>
+            <ion-card-title>{{ milestone.title }}</ion-card-title>
+            <ion-card-subtitle>
+              {{ formatDate(milestone.milestoneDate) }} • {{ getTimeDisplay(milestone) }}
+            </ion-card-subtitle>
+          </div>
+          
+          <div class="milestone-actions">
+            <ion-button 
+              fill="clear" 
+              size="small"
+              (click)="$event.stopPropagation(); shareMilestone(milestone)">
+              <ion-icon name="share-outline" color="medium"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+      </ion-card-header>
+      
+      <div class="milestone-media" *ngIf="milestone.media && milestone.media.length > 0">
+        <img [src]="milestone.media[0].thumbnailUrl || milestone.media[0].url" 
+             [alt]="milestone.title">
+      </div>
+      
+      <ion-card-content>
+        <ion-text *ngIf="milestone.description">
+          <p>{{ milestone.description }}</p>
+        </ion-text>
+        
+        <!-- Progress Bar for Upcoming Milestones -->
+        <div class="milestone-progress" *ngIf="isUpcoming(milestone)">
+          <div class="progress-label">
+            <span>Progress to milestone</span>
+            <span>{{ Math.max(0, 100 - getDaysUntilMilestone(milestone.milestoneDate)) }}%</span>
+          </div>
+          <ion-progress-bar 
+            [value]="Math.max(0, Math.min(1, (100 - getDaysUntilMilestone(milestone.milestoneDate)) / 100))"
+            [color]="getDaysUntilMilestone(milestone.milestoneDate) <= 7 ? 'warning' : 'primary'">
+          </ion-progress-bar>
+        </div>
+        
+        <!-- Achievement Badge for Past Milestones -->
+        <div class="achievement-badge" *ngIf="!isUpcoming(milestone)">
+          <ion-chip color="success">
+            <ion-icon name="checkmark-circle"></ion-icon>
+            <ion-label>Achieved</ion-label>
+          </ion-chip>
+        </div>
+        
+        <div class="milestone-meta" *ngIf="milestone.user">
+          <ion-chip color="secondary" size="small">
+            <ion-avatar>
+              <img [src]="milestone.user.avatar || '/assets/default-avatar.png'" [alt]="milestone.user.name">
+            </ion-avatar>
+            <ion-label>{{ milestone.user.name }}</ion-label>
+          </ion-chip>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading() && filteredMilestones().length === 0" class="empty-state">
+    <ion-icon name="star-outline" size="large" color="medium"></ion-icon>
+    <h2>No milestones found</h2>
+    <p>Start tracking important moments in your family's journey!</p>
+    <ion-button (click)="openCreateMilestone()">Create First Milestone</ion-button>
+  </div>
+
+  <!-- Infinite Scroll -->
+  <ion-infinite-scroll (ionInfinite)="onLoadMore($event)" threshold="100px">
+    <ion-infinite-scroll-content 
+      loadingSpinner="bubbles" 
+      loadingText="Loading more milestones...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+  <!-- Floating Action Button -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="openCreateMilestone()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

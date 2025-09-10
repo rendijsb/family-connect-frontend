@@ -1,0 +1,198 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/family/{{familySlug}}/memories"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Family Traditions</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Search Bar -->
+  <ion-searchbar
+    [value]="searchTerm()"
+    (ionInput)="onSearchChange($event)"
+    placeholder="Search traditions..."
+    debounce="500">
+  </ion-searchbar>
+
+  <!-- View Mode Toggle -->
+  <ion-segment 
+    [value]="viewMode()" 
+    (ionChange)="onViewModeChange($event)"
+    class="segment-padding">
+    <ion-segment-button value="active">
+      <ion-label>Active</ion-label>
+      <ion-badge *ngIf="activeTraditions().length > 0" color="success">
+        {{ activeTraditions().length }}
+      </ion-badge>
+    </ion-segment-button>
+    <ion-segment-button value="all">
+      <ion-label>All</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="inactive">
+      <ion-label>Inactive</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-container">
+    <ion-skeleton-text animated style="width: 100%; height: 150px; margin-bottom: 16px;"></ion-skeleton-text>
+    <ion-skeleton-text animated style="width: 100%; height: 150px; margin-bottom: 16px;"></ion-skeleton-text>
+    <ion-skeleton-text animated style="width: 100%; height: 150px;"></ion-skeleton-text>
+  </div>
+
+  <!-- Traditions List -->
+  <div *ngIf="!loading()" class="traditions-container">
+    <ion-card 
+      *ngFor="let tradition of filteredTraditions()" 
+      class="tradition-card"
+      [class.needs-celebration]="needsCelebration(tradition)"
+      [class.inactive]="!tradition.isActive"
+      (click)="openTraditionDetail(tradition)">
+      
+      <ion-card-header>
+        <div class="tradition-header">
+          <div class="tradition-info">
+            <div class="tradition-badge-line">
+              <ion-chip [color]="getFrequencyColor(tradition.frequency)" size="small">
+                <ion-icon [name]="getFrequencyIcon(tradition.frequency)"></ion-icon>
+                <ion-label>{{ tradition.frequency | titlecase }}</ion-label>
+              </ion-chip>
+              
+              <ion-chip 
+                *ngIf="getTraditionStreak(tradition) > 0" 
+                color="warning" 
+                size="small">
+                <ion-icon name="flame"></ion-icon>
+                <ion-label>{{ getTraditionStreak(tradition) }}</ion-label>
+              </ion-chip>
+              
+              <ion-chip 
+                *ngIf="!tradition.isActive" 
+                color="medium" 
+                size="small">
+                <ion-icon name="pause"></ion-icon>
+                <ion-label>Inactive</ion-label>
+              </ion-chip>
+            </div>
+            
+            <ion-card-title>{{ tradition.name }}</ion-card-title>
+            <ion-card-subtitle>{{ tradition.description }}</ion-card-subtitle>
+          </div>
+          
+          <div class="tradition-actions">
+            <ion-button 
+              fill="clear" 
+              size="small"
+              (click)="$event.stopPropagation(); toggleTraditionStatus(tradition)">
+              <ion-icon 
+                [name]="tradition.isActive ? 'pause' : 'play'" 
+                [color]="tradition.isActive ? 'warning' : 'success'">
+              </ion-icon>
+            </ion-button>
+          </div>
+        </div>
+      </ion-card-header>
+      
+      <div class="tradition-media" *ngIf="tradition.media && tradition.media.length > 0">
+        <img [src]="tradition.media[0].thumbnailUrl || tradition.media[0].url" 
+             [alt]="tradition.name">
+      </div>
+      
+      <ion-card-content>
+        <!-- Celebration Status -->
+        <div class="celebration-status">
+          <div class="status-info">
+            <div class="last-celebrated">
+              <ion-icon name="time" color="medium"></ion-icon>
+              <span>Last: {{ formatLastCelebrated(tradition) }}</span>
+            </div>
+            <div class="celebration-count">
+              <ion-icon name="checkmark-circle" color="success"></ion-icon>
+              <span>{{ tradition.timesCelebrated }} times</span>
+            </div>
+          </div>
+          
+          <!-- Celebrate Button -->
+          <ion-button 
+            *ngIf="tradition.isActive"
+            size="small"
+            [fill]="needsCelebration(tradition) ? 'solid' : 'outline'"
+            [color]="needsCelebration(tradition) ? 'primary' : 'medium'"
+            (click)="$event.stopPropagation(); celebrateTradition(tradition)">
+            <ion-icon name="star" slot="start"></ion-icon>
+            Celebrate
+          </ion-button>
+        </div>
+        
+        <!-- Reminder Message -->
+        <div class="reminder-message" *ngIf="getReminder(tradition)">
+          <ion-chip color="warning" size="small">
+            <ion-icon name="notifications"></ion-icon>
+            <ion-label>{{ getReminder(tradition) }}</ion-label>
+          </ion-chip>
+        </div>
+        
+        <!-- Tradition Components -->
+        <div class="tradition-components" *ngIf="tradition.activities?.length || tradition.recipes?.length || tradition.songsGames?.length">
+          <div class="components-header">
+            <h4>What's included:</h4>
+          </div>
+          <div class="components-list">
+            <ion-chip 
+              *ngIf="tradition.activities?.length" 
+              color="secondary" 
+              size="small">
+              <ion-icon name="play"></ion-icon>
+              <ion-label>{{ tradition.activities.length }} Activities</ion-label>
+            </ion-chip>
+            
+            <ion-chip 
+              *ngIf="tradition.recipes?.length" 
+              color="tertiary" 
+              size="small">
+              <ion-icon name="restaurant"></ion-icon>
+              <ion-label>{{ tradition.recipes.length }} Recipes</ion-label>
+            </ion-chip>
+            
+            <ion-chip 
+              *ngIf="tradition.songsGames?.length" 
+              color="warning" 
+              size="small">
+              <ion-icon name="musical-notes"></ion-icon>
+              <ion-label>{{ tradition.songsGames.length }} Songs/Games</ion-label>
+            </ion-chip>
+          </div>
+        </div>
+        
+        <!-- Participants -->
+        <div class="participants" *ngIf="tradition.participants && tradition.participants.length > 0">
+          <ion-chip color="primary" size="small">
+            <ion-icon name="people"></ion-icon>
+            <ion-label>{{ tradition.participants.length }} participants</ion-label>
+          </ion-chip>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading() && filteredTraditions().length === 0" class="empty-state">
+    <ion-icon name="refresh-outline" size="large" color="medium"></ion-icon>
+    <h2>No traditions found</h2>
+    <p>Start building beautiful family traditions that will last generations!</p>
+    <ion-button (click)="openCreateTradition()">Create First Tradition</ion-button>
+  </div>
+
+  <!-- Floating Action Button -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="openCreateTradition()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

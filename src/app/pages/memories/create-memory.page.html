@@ -1,0 +1,445 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/family/{{familySlug}}/memories"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Create Memory</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="saveDraft()">Save Draft</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Progress Indicator -->
+  <div class="progress-container">
+    <div class="progress-steps">
+      <div 
+        *ngFor="let step of [1,2,3,4]; let i = index"
+        class="progress-step"
+        [class.active]="currentStep() === step"
+        [class.completed]="currentStep() > step"
+        (click)="goToStep(step)">
+        <div class="step-number">
+          <ion-icon 
+            *ngIf="currentStep() > step" 
+            name="checkmark" 
+            color="success">
+          </ion-icon>
+          <span *ngIf="currentStep() <= step">{{ step }}</span>
+        </div>
+        <div class="step-title">{{ getStepTitle(step) }}</div>
+      </div>
+    </div>
+    <div class="progress-bar">
+      <div 
+        class="progress-fill" 
+        [style.width.%]="(currentStep() / totalSteps) * 100">
+      </div>
+    </div>
+  </div>
+
+  <form [formGroup]="memoryForm" class="memory-form">
+    <!-- Step 1: Basic Info -->
+    <div *ngIf="currentStep() === 1" class="form-step">
+      <div class="step-header">
+        <ion-icon name="bookmark" color="primary"></ion-icon>
+        <h2>Basic Information</h2>
+        <p>Let's start with the essentials</p>
+      </div>
+
+      <ion-list>
+        <ion-item>
+          <ion-label position="stacked">Memory Title *</ion-label>
+          <ion-input 
+            formControlName="title" 
+            placeholder="What happened?"
+            maxlength="255">
+          </ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Memory Type *</ion-label>
+          <ion-select formControlName="type" placeholder="Choose a type">
+            <ion-select-option 
+              *ngFor="let type of memoryTypes" 
+              [value]="type.value">
+              {{ type.label }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <!-- Type Description -->
+        <ion-note class="type-description" *ngIf="memoryForm.get('type')?.value">
+          {{ memoryTypes.find(t => t.value === memoryForm.get('type')?.value)?.description }}
+        </ion-note>
+
+        <ion-item>
+          <ion-label position="stacked">When did this happen? *</ion-label>
+          <ion-datetime 
+            formControlName="memoryDate"
+            presentation="date"
+            [max]="new Date().toISOString()">
+          </ion-datetime>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Description</ion-label>
+          <ion-textarea 
+            formControlName="description" 
+            placeholder="Tell the story... (optional)"
+            rows="4"
+            maxlength="2000">
+          </ion-textarea>
+        </ion-item>
+      </ion-list>
+    </div>
+
+    <!-- Step 2: Add Media -->
+    <div *ngIf="currentStep() === 2" class="form-step">
+      <div class="step-header">
+        <ion-icon name="images" color="secondary"></ion-icon>
+        <h2>Add Media</h2>
+        <p>Photos, videos, and audio make memories come alive</p>
+      </div>
+
+      <div class="media-upload-section">
+        <input 
+          type="file" 
+          #fileInput 
+          multiple 
+          accept="image/*,video/*,audio/*"
+          (change)="onFileSelect($event)"
+          style="display: none;">
+
+        <ion-card *ngIf="mediaPreviews().length === 0" class="upload-card">
+          <ion-card-content class="upload-placeholder">
+            <ion-icon name="cloud-upload" size="large" color="medium"></ion-icon>
+            <h3>Add your memories</h3>
+            <p>Photos, videos, and audio files</p>
+            <ion-button 
+              fill="outline" 
+              (click)="fileInput.click()">
+              <ion-icon name="add" slot="start"></ion-icon>
+              Choose Files
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Media Previews -->
+        <ion-grid *ngIf="mediaPreviews().length > 0">
+          <ion-row>
+            <ion-col size="6" *ngFor="let media of mediaPreviews(); let i = index">
+              <div class="media-preview">
+                <img 
+                  *ngIf="media.type === 'image'" 
+                  [src]="media.preview" 
+                  [alt]="media.file.name">
+                
+                <div *ngIf="media.type === 'video'" class="video-preview">
+                  <video [src]="media.preview" muted></video>
+                  <ion-icon name="play" class="play-icon"></ion-icon>
+                </div>
+                
+                <div *ngIf="media.type === 'audio'" class="audio-preview">
+                  <ion-icon name="musical-notes" size="large"></ion-icon>
+                  <p>{{ media.file.name }}</p>
+                </div>
+
+                <ion-button 
+                  fill="clear" 
+                  size="small" 
+                  class="remove-btn"
+                  (click)="removeFile(i)">
+                  <ion-icon name="close" color="danger"></ion-icon>
+                </ion-button>
+              </div>
+            </ion-col>
+          </ion-row>
+          
+          <ion-button 
+            fill="outline" 
+            expand="block" 
+            (click)="fileInput.click()"
+            class="add-more-btn">
+            <ion-icon name="add" slot="start"></ion-icon>
+            Add More Files
+          </ion-button>
+        </ion-grid>
+      </div>
+    </div>
+
+    <!-- Step 3: Details -->
+    <div *ngIf="currentStep() === 3" class="form-step">
+      <div class="step-header">
+        <ion-icon name="information-circle" color="tertiary"></ion-icon>
+        <h2>Add Details</h2>
+        <p>Who was there? Where did it happen?</p>
+      </div>
+
+      <ion-list>
+        <!-- Participants -->
+        <ion-item button (click)="openParticipantsModal()">
+          <ion-icon name="people" slot="start" color="primary"></ion-icon>
+          <ion-label>
+            <h3>Who was there?</h3>
+            <p *ngIf="selectedParticipants().length === 0">Tap to select family members</p>
+            <p *ngIf="selectedParticipants().length > 0">
+              {{ selectedParticipants().length }} family member(s) selected
+            </p>
+          </ion-label>
+          <ion-badge 
+            *ngIf="selectedParticipants().length > 0" 
+            color="primary">
+            {{ selectedParticipants().length }}
+          </ion-badge>
+        </ion-item>
+
+        <!-- Location -->
+        <ion-item button (click)="openLocationModal()">
+          <ion-icon name="location" slot="start" color="primary"></ion-icon>
+          <ion-label>
+            <h3>Where did it happen?</h3>
+            <p *ngIf="!selectedLocation()">Tap to add location</p>
+            <p *ngIf="selectedLocation()">{{ selectedLocation()?.address || selectedLocation()?.city }}</p>
+          </ion-label>
+          <ion-button 
+            *ngIf="selectedLocation()" 
+            fill="clear" 
+            size="small"
+            (click)="$event.stopPropagation(); clearLocation()">
+            <ion-icon name="close" color="medium"></ion-icon>
+          </ion-button>
+        </ion-item>
+
+        <!-- Tags -->
+        <ion-item>
+          <ion-label position="stacked">Tags</ion-label>
+          <div class="tags-container">
+            <!-- Selected Tags -->
+            <div class="selected-tags" *ngIf="selectedTags().length > 0">
+              <ion-chip 
+                *ngFor="let tag of selectedTags()" 
+                color="primary"
+                (click)="removeTag(tag)">
+                <ion-label>{{ tag }}</ion-label>
+                <ion-icon name="close"></ion-icon>
+              </ion-chip>
+            </div>
+            
+            <!-- Available Tags -->
+            <div class="available-tags">
+              <ion-chip 
+                *ngFor="let tag of availableTags()" 
+                [color]="selectedTags().includes(tag) ? 'primary' : 'medium'"
+                outline
+                (click)="addTag(tag)">
+                <ion-label>{{ tag }}</ion-label>
+              </ion-chip>
+            </div>
+            
+            <!-- Add Custom Tag -->
+            <div class="custom-tag">
+              <ion-input 
+                [(ngModel)]="newTag"
+                placeholder="Add custom tag..."
+                (keyup.enter)="addNewTag()">
+              </ion-input>
+              <ion-button 
+                fill="clear" 
+                size="small" 
+                (click)="addNewTag()"
+                [disabled]="!newTag().trim()">
+                <ion-icon name="add"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        </ion-item>
+      </ion-list>
+    </div>
+
+    <!-- Step 4: Privacy & Share -->
+    <div *ngIf="currentStep() === 4" class="form-step">
+      <div class="step-header">
+        <ion-icon name="shield" color="warning"></ion-icon>
+        <h2>Privacy & Sharing</h2>
+        <p>Choose who can see this memory</p>
+      </div>
+
+      <ion-list>
+        <ion-item>
+          <ion-label position="stacked">Who can see this memory?</ion-label>
+          <ion-select 
+            formControlName="visibility" 
+            (ionChange)="onVisibilityChange()">
+            <ion-select-option value="family">All family members</ion-select-option>
+            <ion-select-option value="specific_members">Selected members only</ion-select-option>
+            <ion-select-option value="private">Only me</ion-select-option>
+            <ion-select-option value="public">Public</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <!-- Specific Members Selection -->
+        <div *ngIf="memoryForm.get('visibility')?.value === 'specific_members'" class="specific-members">
+          <ion-item *ngFor="let member of familyMembers()">
+            <ion-avatar slot="start">
+              <img [src]="member.avatar || '/assets/default-avatar.png'" [alt]="member.name">
+            </ion-avatar>
+            <ion-label>{{ member.name }}</ion-label>
+            <ion-checkbox 
+              slot="end"
+              [checked]="memoryForm.get('visibleTo')?.value?.includes(member.id)"
+              (ionChange)="toggleVisibilityMember(member.id, $event)">
+            </ion-checkbox>
+          </ion-item>
+        </div>
+
+        <ion-item>
+          <ion-label>Feature this memory</ion-label>
+          <ion-toggle 
+            formControlName="isFeatured" 
+            slot="end">
+          </ion-toggle>
+          <ion-note>Featured memories appear in the highlights section</ion-note>
+        </ion-item>
+      </ion-list>
+
+      <!-- Summary Card -->
+      <ion-card class="summary-card">
+        <ion-card-header>
+          <ion-card-title>Memory Summary</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="summary-item">
+            <strong>{{ memoryForm.get('title')?.value || 'Untitled Memory' }}</strong>
+          </div>
+          <div class="summary-item">
+            <ion-icon name="calendar"></ion-icon>
+            {{ memoryForm.get('memoryDate')?.value | date:'mediumDate' }}
+          </div>
+          <div class="summary-item">
+            <ion-icon [name]="memoryTypes.find(t => t.value === memoryForm.get('type')?.value)?.icon || 'bookmark'"></ion-icon>
+            {{ memoryTypes.find(t => t.value === memoryForm.get('type')?.value)?.label }}
+          </div>
+          <div class="summary-item" *ngIf="selectedFiles().length > 0">
+            <ion-icon name="images"></ion-icon>
+            {{ selectedFiles().length }} media file(s)
+          </div>
+          <div class="summary-item" *ngIf="selectedParticipants().length > 0">
+            <ion-icon name="people"></ion-icon>
+            {{ selectedParticipants().length }} participant(s)
+          </div>
+          <div class="summary-item" *ngIf="selectedTags().length > 0">
+            <ion-icon name="pricetag"></ion-icon>
+            {{ selectedTags().length }} tag(s)
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </form>
+
+  <!-- Navigation Buttons -->
+  <div class="navigation-buttons">
+    <ion-button 
+      *ngIf="currentStep() > 1"
+      fill="outline" 
+      (click)="previousStep()">
+      <ion-icon name="chevron-back" slot="start"></ion-icon>
+      Previous
+    </ion-button>
+    
+    <div class="spacer"></div>
+    
+    <ion-button 
+      *ngIf="currentStep() < totalSteps"
+      (click)="nextStep()"
+      [disabled]="!canProceed()">
+      Next
+      <ion-icon name="chevron-forward" slot="end"></ion-icon>
+    </ion-button>
+    
+    <ion-button 
+      *ngIf="currentStep() === totalSteps"
+      (click)="saveMemory()"
+      [disabled]="!canProceed() || loading()">
+      <ion-icon name="save" slot="start"></ion-icon>
+      Create Memory
+    </ion-button>
+  </div>
+</ion-content>
+
+<!-- Participants Modal -->
+<ion-modal #participantsModal>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Select Participants</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="participantsModal.dismiss()">Done</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    
+    <ion-content>
+      <ion-list>
+        <ion-item *ngFor="let member of familyMembers()">
+          <ion-avatar slot="start">
+            <img [src]="member.avatar || '/assets/default-avatar.png'" [alt]="member.name">
+          </ion-avatar>
+          <ion-label>
+            <h2>{{ member.name }}</h2>
+            <p>{{ member.role || 'Family Member' }}</p>
+          </ion-label>
+          <ion-checkbox 
+            slot="end"
+            [checked]="selectedParticipants().includes(member.id)"
+            (ionChange)="toggleParticipant(member.id)">
+          </ion-checkbox>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- Location Modal -->
+<ion-modal #locationModal>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Add Location</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="locationModal.dismiss()">Cancel</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    
+    <ion-content>
+      <div class="location-options">
+        <ion-button 
+          expand="block" 
+          fill="outline"
+          (click)="setLocation({address: 'Home', city: 'Home'})">
+          <ion-icon name="home" slot="start"></ion-icon>
+          Home
+        </ion-button>
+        
+        <ion-item>
+          <ion-label position="stacked">Custom Location</ion-label>
+          <ion-input 
+            #customLocation
+            placeholder="Enter location..."
+            (keyup.enter)="setLocation({address: customLocation.value, city: customLocation.value})">
+          </ion-input>
+        </ion-item>
+        
+        <ion-button 
+          expand="block" 
+          (click)="setLocation({address: customLocation.value, city: customLocation.value})"
+          [disabled]="!customLocation.value">
+          <ion-icon name="add" slot="start"></ion-icon>
+          Add Location
+        </ion-button>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>

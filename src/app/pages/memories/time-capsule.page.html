@@ -1,0 +1,234 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/family/{{familySlug}}/memories"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Time Capsules</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Search Bar -->
+  <ion-searchbar
+    [value]="searchTerm()"
+    (ionInput)="onSearchChange($event)"
+    placeholder="Search time capsules..."
+    debounce="500">
+  </ion-searchbar>
+
+  <!-- View Mode Toggle -->
+  <ion-segment 
+    [value]="viewMode()" 
+    (ionChange)="onViewModeChange($event)"
+    class="segment-padding">
+    <ion-segment-button value="all">
+      <ion-label>All</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="sealed">
+      <ion-label>Sealed</ion-label>
+      <ion-badge *ngIf="sealedCapsules().length > 0" color="primary">
+        {{ sealedCapsules().length }}
+      </ion-badge>
+    </ion-segment-button>
+    <ion-segment-button value="ready">
+      <ion-label>Ready</ion-label>
+      <ion-badge *ngIf="readyToOpen().length > 0" color="warning">
+        {{ readyToOpen().length }}
+      </ion-badge>
+    </ion-segment-button>
+    <ion-segment-button value="opened">
+      <ion-label>Opened</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Ready to Open Section -->
+  <div class="ready-section" *ngIf="viewMode() === 'all' && readyToOpen().length > 0">
+    <ion-item lines="none" class="section-header">
+      <ion-icon name="gift" color="warning" slot="start"></ion-icon>
+      <ion-label>
+        <h2>Ready to Open!</h2>
+        <p>These capsules are waiting for you</p>
+      </ion-label>
+    </ion-item>
+    
+    <ion-card 
+      *ngFor="let capsule of readyToOpen().slice(0, 3)" 
+      class="ready-card"
+      (click)="openCapsuleDetail(capsule)">
+      
+      <div class="capsule-badge">
+        <ion-icon name="gift" color="warning"></ion-icon>
+      </div>
+      
+      <ion-card-content>
+        <ion-card-title>{{ capsule.title }}</ion-card-title>
+        <ion-card-subtitle>Sealed {{ formatDate(capsule.sealedAt) }}</ion-card-subtitle>
+        
+        <ion-button 
+          expand="block" 
+          size="small"
+          color="warning"
+          (click)="$event.stopPropagation(); openTimeCapsule(capsule)">
+          <ion-icon name="lock-open" slot="start"></ion-icon>
+          Open Now!
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-container">
+    <ion-skeleton-text animated style="width: 100%; height: 180px; margin-bottom: 16px;"></ion-skeleton-text>
+    <ion-skeleton-text animated style="width: 100%; height: 180px; margin-bottom: 16px;"></ion-skeleton-text>
+    <ion-skeleton-text animated style="width: 100%; height: 180px;"></ion-skeleton-text>
+  </div>
+
+  <!-- Time Capsules List -->
+  <div *ngIf="!loading()" class="capsules-container">
+    <ion-card 
+      *ngFor="let capsule of filteredTimeCapsules()" 
+      class="capsule-card"
+      [class.ready-to-open]="canBeOpened(capsule) && !capsule.isOpened"
+      [class.opening-soon]="isOpeningSoon(capsule) && !capsule.isOpened"
+      [class.opened]="capsule.isOpened"
+      (click)="openCapsuleDetail(capsule)">
+      
+      <ion-card-header>
+        <div class="capsule-header">
+          <div class="capsule-info">
+            <div class="capsule-status-line">
+              <ion-chip 
+                [color]="capsule.isOpened ? 'success' : 'primary'" 
+                size="small">
+                <ion-icon [name]="capsule.isOpened ? 'lock-open' : 'lock-closed'"></ion-icon>
+                <ion-label>{{ capsule.isOpened ? 'Opened' : 'Sealed' }}</ion-label>
+              </ion-chip>
+              
+              <ion-chip 
+                *ngIf="canBeOpened(capsule) && !capsule.isOpened" 
+                color="warning" 
+                size="small">
+                <ion-icon name="gift"></ion-icon>
+                <ion-label>Ready!</ion-label>
+              </ion-chip>
+              
+              <ion-chip 
+                *ngIf="isOpeningSoon(capsule) && !capsule.isOpened" 
+                color="tertiary" 
+                size="small">
+                <ion-icon name="time"></ion-icon>
+                <ion-label>Soon</ion-label>
+              </ion-chip>
+            </div>
+            
+            <ion-card-title>{{ capsule.title }}</ion-card-title>
+            <ion-card-subtitle>
+              <div class="date-info">
+                <span>Sealed: {{ formatDate(capsule.sealedAt) }}</span>
+                <span>Opens: {{ formatDate(capsule.opensAt) }}</span>
+              </div>
+            </ion-card-subtitle>
+          </div>
+        </div>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <ion-text *ngIf="capsule.description">
+          <p>{{ capsule.description }}</p>
+        </ion-text>
+        
+        <!-- Opening Progress -->
+        <div class="opening-progress" *ngIf="!capsule.isOpened">
+          <div class="progress-info">
+            <span>{{ formatTimeUntilOpening(capsule) }}</span>
+            <span>{{ getProgressPercentage(capsule) | number:'1.0-0' }}%</span>
+          </div>
+          <ion-progress-bar 
+            [value]="getProgressPercentage(capsule) / 100"
+            [color]="canBeOpened(capsule) ? 'warning' : 'primary'">
+          </ion-progress-bar>
+        </div>
+        
+        <!-- Opened Info -->
+        <div class="opened-info" *ngIf="capsule.isOpened && capsule.openedAt">
+          <ion-chip color="success">
+            <ion-icon name="checkmark-circle"></ion-icon>
+            <ion-label>Opened {{ formatDate(capsule.openedAt) }}</ion-label>
+          </ion-chip>
+        </div>
+        
+        <!-- Contributors Info -->
+        <div class="contributors-info">
+          <div class="contributors-stats">
+            <ion-chip color="secondary" size="small">
+              <ion-icon name="people"></ion-icon>
+              <ion-label>{{ capsule.contributors?.length || 0 }} contributors</ion-label>
+            </ion-chip>
+            
+            <ion-chip color="tertiary" size="small">
+              <ion-icon name="document"></ion-icon>
+              <ion-label>{{ capsule.contents?.length || 0 }} items</ion-label>
+            </ion-chip>
+          </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <ion-button 
+            *ngIf="!capsule.isOpened && canBeOpened(capsule)"
+            fill="solid"
+            color="warning"
+            size="small"
+            (click)="$event.stopPropagation(); openTimeCapsule(capsule)">
+            <ion-icon name="lock-open" slot="start"></ion-icon>
+            Open Capsule
+          </ion-button>
+          
+          <ion-button 
+            *ngIf="!capsule.isOpened"
+            fill="outline"
+            color="primary"
+            size="small"
+            (click)="$event.stopPropagation(); contributeToTimeCapsule(capsule)">
+            <ion-icon name="add" slot="start"></ion-icon>
+            Contribute
+          </ion-button>
+          
+          <ion-button 
+            *ngIf="capsule.isOpened"
+            fill="outline"
+            color="success"
+            size="small"
+            (click)="$event.stopPropagation(); openCapsuleDetail(capsule)">
+            <ion-icon name="eye" slot="start"></ion-icon>
+            View Contents
+          </ion-button>
+        </div>
+        
+        <!-- Opening Notification -->
+        <div class="opening-notification" *ngIf="getOpeningNotification(capsule) && !capsule.isOpened">
+          <ion-note>{{ getOpeningNotification(capsule) }}</ion-note>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading() && filteredTimeCapsules().length === 0" class="empty-state">
+    <ion-icon name="archive-outline" size="large" color="medium"></ion-icon>
+    <h2>No time capsules found</h2>
+    <p>Create your first time capsule to preserve memories for the future!</p>
+    <ion-button (click)="openCreateTimeCapsule()">Create Time Capsule</ion-button>
+  </div>
+
+  <!-- Floating Action Button -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="openCreateTimeCapsule()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

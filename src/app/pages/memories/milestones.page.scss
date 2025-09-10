@@ -1,0 +1,278 @@
+.segment-padding {
+  padding: 8px 16px;
+  
+  ion-segment-button {
+    position: relative;
+    
+    ion-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      z-index: 1;
+    }
+  }
+}
+
+.upcoming-section {
+  margin-bottom: 16px;
+  
+  .section-header {
+    --padding-start: 16px;
+    --padding-end: 16px;
+    
+    h2 {
+      margin: 0;
+      font-size: 1.2em;
+      font-weight: 600;
+    }
+    
+    p {
+      margin: 0;
+      color: var(--ion-color-medium);
+      font-size: 0.9em;
+    }
+  }
+  
+  .upcoming-scroll {
+    display: flex;
+    overflow-x: auto;
+    padding: 0 16px 16px;
+    gap: 16px;
+    
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .upcoming-card {
+      flex: 0 0 180px;
+      margin: 0;
+      position: relative;
+      min-height: 140px;
+      
+      &.urgent {
+        border: 2px solid var(--ion-color-warning);
+        box-shadow: 0 4px 16px rgba(255, 193, 7, 0.3);
+      }
+      
+      .milestone-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        
+        ion-icon {
+          font-size: 24px;
+        }
+      }
+      
+      ion-card-content {
+        padding: 16px 16px 12px;
+        
+        ion-card-title {
+          font-size: 1em;
+          margin-bottom: 4px;
+          line-height: 1.2;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        
+        ion-card-subtitle {
+          font-size: 0.8em;
+          margin-bottom: 8px;
+        }
+        
+        .time-display {
+          margin-top: 8px;
+          
+          ion-chip {
+            --background: var(--ion-color-light);
+            font-size: 0.75em;
+          }
+        }
+      }
+    }
+  }
+}
+
+.loading-container {
+  padding: 16px;
+}
+
+.milestones-container {
+  padding: 8px 16px 16px;
+  
+  .milestone-card {
+    margin-bottom: 16px;
+    
+    &.upcoming {
+      border-left: 4px solid var(--ion-color-primary);
+      background: linear-gradient(135deg, var(--ion-color-primary-tint) 0%, var(--ion-background-color) 20%);
+    }
+    
+    .milestone-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      
+      .milestone-info {
+        flex: 1;
+        
+        .milestone-badge-line {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+          
+          .badge-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            ion-icon {
+              font-size: 18px;
+            }
+          }
+          
+          ion-chip {
+            margin: 0;
+          }
+        }
+        
+        ion-card-title {
+          margin: 8px 0 4px;
+          font-size: 1.1em;
+        }
+        
+        ion-card-subtitle {
+          margin: 0;
+          font-size: 0.9em;
+          color: var(--ion-color-medium);
+        }
+      }
+      
+      .milestone-actions {
+        display: flex;
+        gap: 4px;
+      }
+    }
+    
+    .milestone-media {
+      img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+      }
+    }
+    
+    .milestone-progress {
+      margin: 12px 0;
+      
+      .progress-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px;
+        font-size: 0.9em;
+        color: var(--ion-color-medium);
+      }
+      
+      ion-progress-bar {
+        --progress-background: var(--ion-color-light);
+        --buffer-background: var(--ion-color-light-shade);
+        height: 6px;
+        border-radius: 3px;
+      }
+    }
+    
+    .achievement-badge {
+      margin: 12px 0 8px;
+    }
+    
+    .milestone-meta {
+      margin-top: 8px;
+      
+      ion-chip {
+        margin: 0;
+      }
+      
+      ion-avatar {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  min-height: 300px;
+  
+  ion-icon {
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+  
+  h2 {
+    margin: 0 0 8px;
+    color: var(--ion-color-medium);
+  }
+  
+  p {
+    margin: 0 0 24px;
+    color: var(--ion-color-medium);
+    opacity: 0.8;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .upcoming-scroll {
+    .upcoming-card {
+      flex: 0 0 160px;
+      min-height: 120px;
+      
+      ion-card-content {
+        padding: 12px;
+        
+        ion-card-title {
+          font-size: 0.9em;
+        }
+      }
+    }
+  }
+  
+  .milestone-header {
+    .milestone-badge-line {
+      .badge-icon {
+        width: 28px;
+        height: 28px;
+      }
+    }
+  }
+}
+
+// Animation for urgent milestones
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.upcoming-card.urgent {
+  animation: pulse 2s infinite;
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .milestone-card.upcoming {
+    background: linear-gradient(135deg, var(--ion-color-primary-shade) 0%, var(--ion-background-color) 20%);
+  }
+}

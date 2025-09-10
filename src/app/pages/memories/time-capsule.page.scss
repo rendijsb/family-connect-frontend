@@ -1,0 +1,320 @@
+.segment-padding {
+  padding: 8px 16px;
+  
+  ion-segment-button {
+    position: relative;
+    
+    ion-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      z-index: 1;
+    }
+  }
+}
+
+.ready-section {
+  margin-bottom: 16px;
+  
+  .section-header {
+    --padding-start: 16px;
+    --padding-end: 16px;
+    
+    h2 {
+      margin: 0;
+      font-size: 1.2em;
+      font-weight: 600;
+    }
+    
+    p {
+      margin: 0;
+      color: var(--ion-color-medium);
+      font-size: 0.9em;
+    }
+  }
+  
+  .ready-card {
+    margin: 0 16px 16px;
+    position: relative;
+    background: linear-gradient(135deg, var(--ion-color-warning-tint) 0%, var(--ion-background-color) 20%);
+    border: 2px solid var(--ion-color-warning);
+    
+    .capsule-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      
+      ion-icon {
+        font-size: 24px;
+        animation: bounce 2s infinite;
+      }
+    }
+    
+    ion-card-content {
+      padding: 16px 16px 12px;
+      
+      ion-card-title {
+        font-size: 1.1em;
+        margin-bottom: 4px;
+      }
+      
+      ion-card-subtitle {
+        font-size: 0.9em;
+        margin-bottom: 12px;
+        color: var(--ion-color-medium);
+      }
+      
+      ion-button {
+        margin-top: 8px;
+        --border-radius: 8px;
+      }
+    }
+  }
+}
+
+.loading-container {
+  padding: 16px;
+}
+
+.capsules-container {
+  padding: 8px 16px 16px;
+  
+  .capsule-card {
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+    
+    &.ready-to-open {
+      border-left: 4px solid var(--ion-color-warning);
+      background: linear-gradient(135deg, var(--ion-color-warning-tint) 0%, var(--ion-background-color) 15%);
+      box-shadow: 0 4px 16px rgba(255, 193, 7, 0.2);
+    }
+    
+    &.opening-soon {
+      border-left: 4px solid var(--ion-color-tertiary);
+      background: linear-gradient(135deg, var(--ion-color-tertiary-tint) 0%, var(--ion-background-color) 15%);
+    }
+    
+    &.opened {
+      border-left: 4px solid var(--ion-color-success);
+      background: linear-gradient(135deg, var(--ion-color-success-tint) 0%, var(--ion-background-color) 15%);
+    }
+    
+    .capsule-header {
+      .capsule-info {
+        .capsule-status-line {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+          flex-wrap: wrap;
+          
+          ion-chip {
+            margin: 0;
+          }
+        }
+        
+        ion-card-title {
+          margin: 8px 0 4px;
+          font-size: 1.2em;
+          font-weight: 600;
+        }
+        
+        ion-card-subtitle {
+          margin: 0;
+          
+          .date-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: 0.9em;
+            color: var(--ion-color-medium);
+            
+            span {
+              display: block;
+            }
+          }
+        }
+      }
+    }
+    
+    .opening-progress {
+      margin: 16px 0;
+      padding: 12px;
+      background: var(--ion-color-light);
+      border-radius: 8px;
+      
+      .progress-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        
+        span:first-child {
+          font-weight: 600;
+          color: var(--ion-color-dark);
+        }
+        
+        span:last-child {
+          color: var(--ion-color-medium);
+        }
+      }
+      
+      ion-progress-bar {
+        --progress-background: var(--ion-color-light-shade);
+        height: 8px;
+        border-radius: 4px;
+      }
+    }
+    
+    .opened-info {
+      margin: 12px 0;
+    }
+    
+    .contributors-info {
+      margin: 12px 0;
+      
+      .contributors-stats {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        
+        ion-chip {
+          margin: 0;
+        }
+      }
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+      
+      ion-button {
+        --border-radius: 8px;
+      }
+    }
+    
+    .opening-notification {
+      margin-top: 12px;
+      text-align: center;
+      
+      ion-note {
+        font-style: italic;
+        color: var(--ion-color-warning);
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  min-height: 300px;
+  
+  ion-icon {
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+  
+  h2 {
+    margin: 0 0 8px;
+    color: var(--ion-color-medium);
+  }
+  
+  p {
+    margin: 0 0 24px;
+    color: var(--ion-color-medium);
+    opacity: 0.8;
+    max-width: 300px;
+    line-height: 1.5;
+  }
+}
+
+// Animations
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+.capsule-card.ready-to-open {
+  animation: gentlePulse 3s infinite;
+}
+
+@keyframes gentlePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.005); }
+  100% { transform: scale(1); }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .ready-card {
+    .capsule-badge {
+      top: 8px;
+      right: 8px;
+      
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+  }
+  
+  .capsule-header {
+    .capsule-status-line {
+      gap: 6px;
+    }
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    
+    ion-button {
+      width: 100%;
+    }
+  }
+  
+  .date-info {
+    span {
+      font-size: 0.8em !important;
+    }
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .ready-card {
+    background: linear-gradient(135deg, var(--ion-color-warning-shade) 0%, var(--ion-background-color) 20%);
+  }
+  
+  .capsule-card {
+    &.ready-to-open {
+      background: linear-gradient(135deg, var(--ion-color-warning-shade) 0%, var(--ion-background-color) 15%);
+    }
+    
+    &.opening-soon {
+      background: linear-gradient(135deg, var(--ion-color-tertiary-shade) 0%, var(--ion-background-color) 15%);
+    }
+    
+    &.opened {
+      background: linear-gradient(135deg, var(--ion-color-success-shade) 0%, var(--ion-background-color) 15%);
+    }
+  }
+  
+  .opening-progress {
+    background: var(--ion-color-dark);
+  }
+}

@@ -17,7 +17,8 @@ import {
   copyOutline, shareOutline, refreshOutline, addOutline, timeOutline,
   globeOutline, lockClosedOutline, keyOutline, settingsOutline, exitOutline,
   trashOutline, createOutline, closeOutline, personOutline, personRemoveOutline,
-  radioButtonOnOutline, radioButtonOffOutline
+  radioButtonOnOutline, radioButtonOffOutline, bookmarkOutline, starOutline,
+  archiveOutline, refreshCircleOutline
 } from 'ionicons/icons';
 
 import { FamilyService } from '../../../core/services/family/family.service';
@@ -140,7 +141,8 @@ export class FamilyDetailPage implements OnInit, OnDestroy {
       copyOutline, shareOutline, refreshOutline, addOutline, timeOutline,
       globeOutline, lockClosedOutline, keyOutline, settingsOutline, exitOutline,
       trashOutline, createOutline, closeOutline, personOutline, personRemoveOutline,
-      radioButtonOnOutline, radioButtonOffOutline
+      radioButtonOnOutline, radioButtonOffOutline, bookmarkOutline, starOutline,
+      archiveOutline, refreshCircleOutline
     });
   }
 
@@ -230,6 +232,18 @@ export class FamilyDetailPage implements OnInit, OnDestroy {
 
   async openFamilyMemories() {
     await this.router.navigate(['/family', this.familySlug(), 'memories']);
+  }
+
+  async openFamilyMilestones() {
+    await this.router.navigate(['/family', this.familySlug(), 'memories', 'milestones']);
+  }
+
+  async openFamilyTraditions() {
+    await this.router.navigate(['/family', this.familySlug(), 'memories', 'traditions']);
+  }
+
+  async openFamilyTimeCapsules() {
+    await this.router.navigate(['/family', this.familySlug(), 'memories', 'time-capsules']);
   }
 
   async inviteMembers() {
