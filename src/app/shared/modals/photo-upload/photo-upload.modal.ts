@@ -11,7 +11,7 @@ import {
 import { ModalController, ActionSheetController, AlertController, ToastController } from '@ionic/angular';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Filesystem, Directory } from '@capacitor/filesystem';
-import { addIcons } from 'ionicons/icons';
+import { addIcons } from 'ionicons';
 import { 
   close, cloudUpload, camera, images, add, trash, checkmark,
   person, pricetag, location, calendar, informationCircle
@@ -450,5 +450,13 @@ export class PhotoUploadModal implements OnInit {
 
   trackByFileId(index: number, file: UploadFile): string {
     return file.id;
+  }
+
+  getCompletedFilesCount(): number {
+    return this.files.filter(f => f.status === 'completed').length;
+  }
+
+  getErrorFilesCount(): number {
+    return this.files.filter(f => f.status === 'error').length;
   }
 }

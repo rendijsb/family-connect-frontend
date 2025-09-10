@@ -6,16 +6,16 @@ import {
   IonIcon, IonImg, IonText, IonChip, IonItem, IonLabel, IonList,
   IonTextarea, IonCard, IonCardContent, IonCardHeader, IonCardTitle,
   IonBadge, IonAvatar, IonActionSheet, IonAlert, IonToast, IonModal,
-  IonSlides, IonFab, IonFabButton, IonRefresher, IonRefresherContent
+  IonFab, IonFabButton, IonRefresher, IonRefresherContent, IonSkeletonText
 } from '@ionic/angular/standalone';
 import { ModalController, ActionSheetController, AlertController } from '@ionic/angular';
-import { addIcons } from 'ionicons/icons';
+import { addIcons } from 'ionicons';
 import { 
   close, heart, heartOutline, chatbubble, share, download, 
   informationCircle, eye, person, calendar, location, 
   chevronBack, chevronForward, ellipsisVertical, send
 } from 'ionicons/icons';
-import { Swiper } from 'swiper';
+// import { Swiper } from 'swiper';
 import { PhotoRealtimeService } from '../../../core/services/photos/photo-realtime.service';
 import { PhotoService } from '../../../core/services/photos/photo.service';
 import { Subscription } from 'rxjs';
@@ -50,12 +50,12 @@ export interface PhotoComment {
     IonIcon, IonImg, IonText, IonChip, IonItem, IonLabel, IonList,
     IonTextarea, IonCard, IonCardContent, IonCardHeader, IonCardTitle,
     IonBadge, IonAvatar, IonActionSheet, IonAlert, IonToast, IonModal,
-    IonSlides, IonSlide, IonFab, IonFabButton, IonRefresher, IonRefresherContent
+    IonFab, IonFabButton, IonRefresher, IonRefresherContent, IonSkeletonText
   ]
 })
 export class PhotoViewerModal implements OnInit, OnDestroy {
   @Input() data!: PhotoViewerData;
-  @ViewChild('slides', { static: false }) slides!: IonSlides;
+  // @ViewChild('slides', { static: false }) slides!: IonSlides;
 
   private modalCtrl = inject(ModalController);
   private actionSheetCtrl = inject(ActionSheetController);
@@ -157,22 +157,27 @@ export class PhotoViewerModal implements OnInit, OnDestroy {
   }
 
   async onSlideChange() {
-    if (this.slides) {
-      this.currentIndex = await this.slides.getActiveIndex();
+    // Slides functionality disabled - needs swiper implementation
+    // if (this.slides) {
+    //   this.currentIndex = await this.slides.getActiveIndex();
+    //   this.updateCurrentPhoto();
+    //   this.loadComments();
+    // }
+  }
+
+  goToPrevious() {
+    if (this.currentIndex > 0) {
+      this.currentIndex--;
       this.updateCurrentPhoto();
       this.loadComments();
     }
   }
 
-  goToPrevious() {
-    if (this.currentIndex > 0) {
-      this.slides?.slidePrev();
-    }
-  }
-
   goToNext() {
     if (this.currentIndex < this.data.photos.length - 1) {
-      this.slides?.slideNext();
+      this.currentIndex++;
+      this.updateCurrentPhoto();
+      this.loadComments();
     }
   }
 
@@ -347,6 +352,10 @@ export class PhotoViewerModal implements OnInit, OnDestroy {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  trackByCommentId(index: number, comment: ApiPhotoComment): number {
+    return comment.id;
   }
 
   formatFileSize(bytes: number): string {

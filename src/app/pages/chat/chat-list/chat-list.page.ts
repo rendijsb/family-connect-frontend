@@ -86,8 +86,6 @@ import { CreateChatRoomModal } from '../create-room/create-chat-room.modal';
     IonFab,
     IonFabButton,
     IonSkeletonText,
-    IonItem,
-    IonLabel,
   ],
 })
 export class ChatListPage implements OnInit, OnDestroy {

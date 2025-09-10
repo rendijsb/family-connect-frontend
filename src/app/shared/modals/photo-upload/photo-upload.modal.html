@@ -104,17 +104,17 @@
       </ion-chip>
       
       <ion-chip 
-        *ngIf="files.filter(f => f.status === 'completed').length > 0"
+        *ngIf="getCompletedFilesCount() > 0"
         color="success">
         <ion-icon name="checkmark"></ion-icon>
-        <ion-label>{{ files.filter(f => f.status === 'completed').length }} uploaded</ion-label>
+        <ion-label>{{ getCompletedFilesCount() }} uploaded</ion-label>
       </ion-chip>
       
       <ion-chip 
-        *ngIf="files.filter(f => f.status === 'error').length > 0"
+        *ngIf="getErrorFilesCount() > 0"
         color="danger">
         <ion-icon name="close"></ion-icon>
-        <ion-label>{{ files.filter(f => f.status === 'error').length }} failed</ion-label>
+        <ion-label>{{ getErrorFilesCount() }} failed</ion-label>
       </ion-chip>
     </div>
 
@@ -129,7 +129,7 @@
       </ion-button>
       
       <ion-button 
-        *ngIf="files.filter(f => f.status === 'error').length > 0"
+        *ngIf="getErrorFilesCount() > 0"
         size="small" 
         fill="outline" 
         color="warning"
@@ -139,7 +139,7 @@
       </ion-button>
       
       <ion-button 
-        *ngIf="files.filter(f => f.status === 'completed').length > 0"
+        *ngIf="getCompletedFilesCount() > 0"
         size="small" 
         fill="outline" 
         color="medium"

@@ -8,7 +8,7 @@ import {
   IonRow, IonCol, IonCard, IonCardContent, IonCardHeader, IonCardTitle
 } from '@ionic/angular/standalone';
 import { ModalController } from '@ionic/angular';
-import { addIcons } from 'ionicons/icons';
+import { addIcons } from 'ionicons';
 import { close, checkmark, lockClosed, globe, home, people } from 'ionicons/icons';
 import { PhotoAlbumService } from '../../../core/services/photos/photo-album.service';
 import { CreateAlbumRequest, AlbumPrivacy } from '../../../models/photos/photo.models';

@@ -112,7 +112,7 @@
               <div class="album-meta">
                 <ion-text color="medium">
                   <ion-icon name="person"></ion-icon>
-                  {{ album.createdBy.name }}
+                  {{ album.creator?.name || 'Unknown' }}
                 </ion-text>
                 <ion-text color="medium">
                   <ion-icon name="time"></ion-icon>

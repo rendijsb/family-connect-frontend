@@ -19,25 +19,16 @@
 <ion-content>
   <!-- Photo Slides -->
   <div class="photo-container">
-    <ion-slides 
-      #slides
-      [options]="{ 
-        initialSlide: currentIndex, 
-        spaceBetween: 0,
-        centeredSlides: true,
-        zoom: { maxRatio: 3 }
-      }"
-      (ionSlideDidChange)="onSlideChange()">
-      <ion-slide *ngFor="let photo of data.photos; let i = index">
-        <div class="slide-content">
-          <ion-img 
-            [src]="photo.path" 
-            [alt]="photo.originalName"
-            class="main-photo">
-          </ion-img>
-        </div>
-      </ion-slide>
-    </ion-slides>
+    <div class="photo-display">
+      <div class="photo-wrapper">
+        <ion-img 
+          *ngIf="currentPhoto"
+          [src]="currentPhoto.path" 
+          [alt]="currentPhoto.originalName"
+          class="main-photo">
+        </ion-img>
+      </div>
+    </div>
 
     <!-- Navigation Arrows -->
     <ion-button 
@@ -199,9 +190,9 @@
       <ion-item *ngFor="let comment of comments; trackBy: trackByCommentId">
         <ion-avatar slot="start">
           <img 
-            *ngIf="comment.userAvatar; else defaultAvatar"
-            [src]="comment.userAvatar" 
-            [alt]="comment.userName">
+            *ngIf="comment.user?.avatar; else defaultAvatar"
+            [src]="comment.user?.avatar" 
+            [alt]="comment.user?.name">
           <ng-template #defaultAvatar>
             <ion-icon name="person"></ion-icon>
           </ng-template>
@@ -209,7 +200,7 @@
         
         <ion-label>
           <div class="comment-header">
-            <strong>{{ comment.userName }}</strong>
+            <strong>{{ comment.user?.name || 'Unknown User' }}</strong>
             <ion-text color="medium" class="comment-date">
               {{ formatDate(comment.createdAt) }}
             </ion-text>

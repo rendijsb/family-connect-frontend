@@ -267,6 +267,7 @@ export interface PhotoLikedEvent {
   userId: number;
   userName: string;
   likesCount: number;
+  isLiked: boolean;
 }
 
 export interface PhotoCommentedEvent {

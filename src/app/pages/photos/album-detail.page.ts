@@ -10,7 +10,7 @@ import {
   IonActionSheet, IonAlert, IonToast, IonModal, IonLabel
 } from '@ionic/angular/standalone';
 import { ActionSheetController, AlertController, ModalController } from '@ionic/angular';
-import { addIcons } from 'ionicons/icons';
+import { addIcons } from 'ionicons';
 import { 
   add, image, videocam, download, eye, heart, chatbubble, 
   person, time, folder, grid, list, funnel, ellipsisVertical,
@@ -36,6 +36,7 @@ export interface Photo {
   likesCount: number;
   commentsCount: number;
   isFavorite: boolean;
+  isLikedByCurrentUser?: boolean;
   uploadedBy: {
     id: number;
     name: string;
@@ -108,8 +109,12 @@ export class AlbumDetailPage implements OnInit, OnDestroy {
     this.photoRealtimeService.photoUploaded$.subscribe(event => {
       if (event && event.albumId.toString() === this.albumId) {
         console.log('New photo uploaded:', event.photo);
-        // Add the new photo to the current photos array
-        this.photos.unshift(event.photo);
+        // Add the new photo to the current photos array (convert to local Photo interface)
+        const localPhoto: Photo = {
+          ...event.photo,
+          uploadedBy: event.photo.uploader || { id: event.photo.uploadedBy as number, name: 'Unknown', avatar: undefined }
+        };
+        this.photos.unshift(localPhoto);
         this.filterPhotos();
       }
     });
@@ -120,7 +125,7 @@ export class AlbumDetailPage implements OnInit, OnDestroy {
         const photo = this.photos.find(p => p.id === event.photoId);
         if (photo) {
           photo.likesCount = event.likesCount;
-          photo.isLikedByCurrentUser = event.liked;
+          photo.isLikedByCurrentUser = event.isLiked;
         }
       }
     });

@@ -19,6 +19,6 @@ export const environment = {
     allowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
     realtimeNotifications: true,
     enableToastNotifications: true,
-    notificationDuration: 2000
+    notificationDuration: 3000
   }
 };

@@ -88,7 +88,7 @@
           </ion-item>
 
           <div class="character-count">
-            {{ chatRoomForm?.get("description")?.value?.length || 0 }}/200
+            {{ chatRoomForm.get("description")?.value?.length || 0 }}/200
           </div>
         </div>
       </div>
@@ -101,8 +101,8 @@
           @for (type of roomTypes; track type.value) {
             <ion-item
               class="room-type-option"
-              [class.selected]="chatRoomForm?.get('type')?.value === type.value"
-              (click)="chatRoomForm?.patchValue({ type: type.value })"
+              [class.selected]="chatRoomForm.get('type')?.value === type.value"
+              (click)="chatRoomForm.patchValue({ type: type.value })"
               button
             >
               <div class="room-type-content">
@@ -119,7 +119,7 @@
 
               <ion-icon
                 [name]="
-                chatRoomForm?.get('type')?.value === type.value
+                chatRoomForm.get('type')?.value === type.value
                   ? 'radio-button-on-outline'
                   : 'radio-button-off-outline'
               "
@@ -240,7 +240,7 @@
           type="submit"
           class="create-button"
           [disabled]="
-            !chatRoomForm?.valid ||
+            !chatRoomForm.valid ||
             selectedMembers().length === 0 ||
             isCreating()
           "

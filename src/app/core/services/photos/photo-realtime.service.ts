@@ -43,7 +43,7 @@ export class PhotoRealtimeService {
 
   private setupGlobalListeners() {
     // Listen for connection status
-    this.websocketService.connectionStatus$.subscribe(status => {
+    this.websocketService.connectionState$.subscribe(status => {
       console.log('Photo realtime - WebSocket status:', status);
     });
   }
@@ -58,8 +58,13 @@ export class PhotoRealtimeService {
 
     console.log('Subscribing to family photos channel:', channelName);
     
-    this.websocketService.subscribeToChannel(channelName, (data: any) => {
-      this.handleFamilyPhotoEvent(data);
+    this.websocketService.joinPrivateChannel(channelName).then(channel => {
+      channel.listen('photo.uploaded', (data: any) => this.handleFamilyPhotoEvent({ type: 'photo.uploaded', data }));
+      channel.listen('album.created', (data: any) => this.handleFamilyPhotoEvent({ type: 'album.created', data }));
+      channel.listen('album.updated', (data: any) => this.handleFamilyPhotoEvent({ type: 'album.updated', data }));
+      channel.listen('album.deleted', (data: any) => this.handleFamilyPhotoEvent({ type: 'album.deleted', data }));
+    }).catch(error => {
+      console.error('Failed to subscribe to family photos channel:', error);
     });
 
     this.subscribedChannels.add(channelName);
@@ -75,8 +80,13 @@ export class PhotoRealtimeService {
 
     console.log('Subscribing to album channel:', channelName);
     
-    this.websocketService.subscribeToChannel(channelName, (data: any) => {
-      this.handleAlbumEvent(data);
+    this.websocketService.joinPrivateChannel(channelName).then(channel => {
+      channel.listen('photo.uploaded', (data: any) => this.handleAlbumEvent({ type: 'photo.uploaded', data }));
+      channel.listen('photo.deleted', (data: any) => this.handleAlbumEvent({ type: 'photo.deleted', data }));
+      channel.listen('album.updated', (data: any) => this.handleAlbumEvent({ type: 'album.updated', data }));
+      channel.listen('album.stats.updated', (data: any) => this.handleAlbumEvent({ type: 'album.stats.updated', data }));
+    }).catch(error => {
+      console.error('Failed to subscribe to album channel:', error);
     });
 
     this.subscribedChannels.add(channelName);
@@ -92,8 +102,15 @@ export class PhotoRealtimeService {
 
     console.log('Subscribing to photo channel:', channelName);
     
-    this.websocketService.subscribeToChannel(channelName, (data: any) => {
-      this.handlePhotoEvent(data);
+    this.websocketService.joinPrivateChannel(channelName).then(channel => {
+      channel.listen('photo.liked', (data: any) => this.handlePhotoEvent({ type: 'photo.liked', data }));
+      channel.listen('photo.unliked', (data: any) => this.handlePhotoEvent({ type: 'photo.unliked', data }));
+      channel.listen('photo.commented', (data: any) => this.handlePhotoEvent({ type: 'photo.commented', data }));
+      channel.listen('photo.comment.deleted', (data: any) => this.handlePhotoEvent({ type: 'photo.comment.deleted', data }));
+      channel.listen('photo.updated', (data: any) => this.handlePhotoEvent({ type: 'photo.updated', data }));
+      channel.listen('photo.views.updated', (data: any) => this.handlePhotoEvent({ type: 'photo.views.updated', data }));
+    }).catch(error => {
+      console.error('Failed to subscribe to photo channel:', error);
     });
 
     this.subscribedChannels.add(channelName);
@@ -102,19 +119,19 @@ export class PhotoRealtimeService {
   // Unsubscribe from channels
   unsubscribeFromFamily(familySlug: string) {
     const channelName = `family.${familySlug}.photos`;
-    this.websocketService.unsubscribeFromChannel(channelName);
+    this.websocketService.leaveChannel(channelName);
     this.subscribedChannels.delete(channelName);
   }
 
   unsubscribeFromAlbum(familySlug: string, albumId: string) {
     const channelName = `family.${familySlug}.album.${albumId}`;
-    this.websocketService.unsubscribeFromChannel(channelName);
+    this.websocketService.leaveChannel(channelName);
     this.subscribedChannels.delete(channelName);
   }
 
   unsubscribeFromPhoto(familySlug: string, photoId: string) {
     const channelName = `family.${familySlug}.photo.${photoId}`;
-    this.websocketService.unsubscribeFromChannel(channelName);
+    this.websocketService.leaveChannel(channelName);
     this.subscribedChannels.delete(channelName);
   }
 
@@ -291,7 +308,7 @@ export class PhotoRealtimeService {
     console.log('Cleaning up photo realtime service');
     
     this.subscribedChannels.forEach(channel => {
-      this.websocketService.unsubscribeFromChannel(channel);
+      this.websocketService.leaveChannel(channel);
     });
     
     this.subscribedChannels.clear();

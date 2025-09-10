@@ -11,7 +11,7 @@ import {
   IonInfiniteScrollContent, IonBackButton, IonButtons
 } from '@ionic/angular/standalone';
 import { ModalController, ToastController } from '@ionic/angular';
-import { addIcons } from 'ionicons/icons';
+import { addIcons } from 'ionicons';
 import { 
   add, image, videocam, download, eye, heart, chatbubble, 
   person, time, folder, grid, list, funnel 
